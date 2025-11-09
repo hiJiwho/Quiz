@@ -116,12 +116,12 @@
             
             /* (신규) 정답지 제목 (페이지 넘김) */
             .print-answer-key-title {
-                page-break-before: always; /* 이 요소 앞에서 항상 페이지를 나눕니다 */
+                /* page-break-before: always; */ /* (수정) 이 규칙을 제거합니다. */
                 text-align: center;
                 font-size: 1.5em;
                 font-weight: bold;
-                margin-top: 2cm; /* 페이지 상단 여백 */
-                margin-bottom: 30px;
+                margin-top: 1cm;
+                margin-bottom: 20px;
             }
 
             /* (신규) 정답지 개별 항목 */
@@ -132,13 +132,148 @@
         }
 
         /* * ======================================
-/* ... existing code ... -->
+         * 앱 UI 스타일 (Tailwind 대체)
+         * ======================================
+         */
+        
+        /* SVG 보기 버튼 호버 효과 */
+        .svg-option:hover > rect {
+            fill: #e5e7eb; /* bg-gray-200 */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 md:p-10">
+
+    <!-- 
+      ======================================
+      앱 메인 컨테이너
+      ======================================
+    -->
+    <div id="app-container" class="max-w-3xl mx-auto bg-white shadow-2xl rounded-xl overflow-hidden">
+        
+        <!-- 1. JSON 입력 섹션 -->
+        <div id="json-input-section" class="p-6 md:p-8">
+            <h1 class="text-2xl font-bold text-gray-800 mb-4">JSON 퀴즈 생성기</h1>
+            <p class="text-gray-600 mb-5">
+                아래 텍스트 영역에 퀴즈 문제를 JSON 형식으로 붙여넣으세요.
+                <br>
+                예제 JSON을 참고하여 형식을 맞추거나, 직접 수정하여 사용할 수 있습니다.
+            </p>
+
+            <!-- JSON 입력창 -->
+            <textarea id="json-input" rows="15" class="w-full p-4 border border-gray-300 rounded-lg font-mono text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+            
+            <!-- 오류 메시지 -->
+            <p id="json-error" class="text-red-600 font-semibold mt-2 hidden"></p>
+
+            <!-- (수정) JSON 컨트롤 버튼 그룹 레이아웃 -->
+            <div class="flex flex-col gap-3 mt-4">
+                <button id="load-json-btn" class="w-full bg-blue-600 text-white px-5 py-3 rounded-lg font-bold hover:bg-blue-700 transition duration-200">
+                    문제 불러오기
+                </button>
+                <div class="grid grid-cols-3 gap-3">
+                    <button id="reset-default-json-btn" class="w-full bg-gray-200 text-gray-700 px-5 py-3 rounded-lg hover:bg-gray-300 transition duration-200">
+                        예제 초기화
+                    </button>
+                    <button id="copy-json-btn" class="w-full bg-gray-200 text-gray-700 px-5 py-3 rounded-lg hover:bg-gray-300 transition duration-200">
+                        예제 복사
+                    </button>
+                    <button id="clear-json-btn" class="w-full bg-red-500 text-white px-5 py-3 rounded-lg hover:bg-red-600 transition duration-200">
+                        삭제
+                    </button>
+                </div>
+            </div>
+            <!-- (수정) 기존 버튼 그룹 (삭제됨)
+            <div class="flex flex-wrap gap-3 mt-4">
+                ...
+            </div>
+            -->
+        </div>
+        
+        <!-- 2. 액션 컨트롤 섹션 (JSON 로드 후 보임) -->
+        <div id="action-controls" class="p-6 md:p-8 border-t border-gray-200 hidden">
+            <div id="load-status" class="hidden mb-4 p-4 bg-green-100 text-green-800 rounded-lg">
+                <span id="question-count" class="font-bold">0</span>개의 문제를 성공적으로 불러왔습니다.
+            </div>
+            <!-- (수정) 퀴즈 시작 버튼과 인쇄 버튼 영역을 분리 -->
+            <div class="grid grid-cols-1 gap-4">
+                <button id="start-quiz-btn" class="w-full bg-green-600 text-white p-4 rounded-lg font-bold text-lg hover:bg-green-700 transition">
+                    2. 퀴즈 풀기 시작!
+                </button>
+                <!-- (신규) 인쇄 버튼 2개를 가로로 배치 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button id="print-questions-btn" class="w-full bg-gray-700 text-white p-4 rounded-lg font-bold text-lg hover:bg-gray-800 transition">
+                        문제지만 인쇄하기
+                    </button>
+                    <button id="print-answers-btn" class="w-full bg-gray-800 text-white p-4 rounded-lg font-bold text-lg hover:bg-gray-900 transition">
+                        정답/해설만 인쇄하기
+                    </button>
+                </div>
+            </div>
+             <button id="back-to-json-btn" class="w-full bg-gray-200 text-gray-700 p-3 rounded-lg hover:bg-gray-300 transition mt-4">
+                JSON 수정하기
+            </button>
+        </div>
+
+        <!-- 3. 퀴즈 풀기 섹션 (퀴즈 시작 후 보임) -->
+        <div id="quiz-section" class="p-6 md:p-8 hidden">
+            <!-- 퀴즈 상단 바 -->
+            <div class="flex justify-between items-center mb-6">
+                <span id="progress-text" class="text-lg font-semibold text-gray-700">문제 1 / 10</span>
+                <button id="quit-quiz-btn" class="text-sm text-red-600 hover:text-red-800 font-medium">
+                    퀴즈 종료
+                </button>
+            </div>
+
+            <!-- 문제 -->
+            <h2 id="question-title" class="text-2xl font-bold text-gray-900 mb-4"></h2>
+            
+            <!-- (신규) 문제 SVG 컨테이너 -->
+            <div id="question-svg-container" class="my-5 flex justify-center hidden">
+                <!-- JS가 이곳에 SVG를 삽입 -->
+            </div>
+
+            <!-- 보기 목록 -->
+            <ul id="options-list" class="space-y-3">
+                <!-- JS가 이곳에 SVG 보기 버튼을 삽입 -->
+            </ul>
+
+            <!-- 피드백 및 다음 버튼 -->
+            <div class="mt-6">
+                <p id="feedback-text" class="text-xl font-bold"></p>
+                <p id="explanation-text" class="mt-3 text-gray-700 bg-gray-100 p-4 rounded-md hidden"></p>
+                <button id="next-question-btn" class="w-full bg-blue-600 text-white p-4 rounded-lg font-bold text-lg hover:bg-blue-700 transition mt-4 hidden">
+                    다음 문제로
+                </button>
+            </div>
+        </div>
+
+        <!-- 4. 최종 결과 섹션 (퀴즈 종료 후 보임) -->
+        <div id="results-section" class="p-6 md:p-10 text-center hidden">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">퀴즈 완료!</h2>
+            <p class="text-xl text-gray-600 mb-6">수고하셨습니다.</p>
+            
+            <div class="bg-blue-50 p-8 rounded-xl">
+                <p class="text-lg text-blue-800">총 문제</p>
+                <p id="total-questions-result" class="text-4xl font-extrabold text-blue-900 mb-4"></p>
+                
+                <p class="text-lg text-blue-800">최종 점수</p>
+                <p id="final-score" class="text-6xl font-extrabold text-blue-900"></p>
+            </div>
+
+            <button id="restart-quiz-btn" class="w-full bg-blue-600 text-white p-4 rounded-lg font-bold text-lg hover:bg-blue-700 transition mt-8">
+                처음으로 돌아가기
+            </button>
+        </div>
+
+    </div>
+
     <!-- 
       ======================================
       인쇄 전용 HTML 영역 (평소에는 안 보임)
       ======================================
     -->
-    <div id="printable-area">
+    <div id="printable-area" class="hidden">
         <!-- 
           JS가 이곳에 인쇄용 컨텐츠를 생성합니다
           (1부: 문제지, 2부: 정답지)
@@ -180,6 +315,7 @@
     },
     {
         "question": "다음 보기 중 '둥근 사각형(Rounded Rectangle)'을 나타내는 SVG는 무엇인가요?",
+        "svgImage": "<svg viewBox='0 0 100 60' xmlns='http://www.w3.org/2000/svg' class='w-full max-w-xs border rounded-md'><rect x='10' y='10' width='80' height='40' rx='10' stroke='blue' stroke-width='3' fill='lightblue'/><text x='50' y='35' text-anchor='middle' font-size='10' fill='black'>질문 SVG</text></svg>",
         "options": [
             { "text": "원", "svgImage": "<svg viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'><circle cx='20' cy='20' r='18' stroke='black' stroke-width='2' fill='none'/></svg>" },
             { "text": "일반 사각형", "svgImage": "<svg viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'><rect x='5' y='5' width='30' height='30' stroke='black' stroke-width='2' fill='none'/></svg>" },
@@ -204,24 +340,26 @@
         const jsonError = document.getElementById('json-error');
         const loadJsonBtn = document.getElementById('load-json-btn');
         const resetDefaultJsonBtn = document.getElementById('reset-default-json-btn');
-        const copyJsonBtn = document.getElementById('copy-json-btn'); // (신규) JSON 복사 버튼
+        const copyJsonBtn = document.getElementById('copy-json-btn');
+        const clearJsonBtn = document.getElementById('clear-json-btn'); // (신규) 삭제 버튼
         
-        const actionControls = document.getElementById('action-controls'); // (수정) main-controls -> action-controls
-        const loadStatus = document.getElementById('load-status'); // (수정) 누락되었던 ID
-        const questionCount = document.getElementById('question-count'); // (수정) 누락되었던 ID
+        const actionControls = document.getElementById('action-controls');
+        const loadStatus = document.getElementById('load-status');
+        const questionCount = document.getElementById('question-count');
         
-        const startQuizBtn = document.getElementById('start-quiz-btn'); // (수정) 누락되었던 ID
-        const printBtn = document.getElementById('print-btn'); // (수정) 누락되었던 ID
-        const backToJsonBtn = document.getElementById('back-to-json-btn'); // (신규) JSON 수정 버튼
+        const startQuizBtn = document.getElementById('start-quiz-btn');
+        const printQuestionsBtn = document.getElementById('print-questions-btn');
+        const printAnswersBtn = document.getElementById('print-answers-btn');
+        const backToJsonBtn = document.getElementById('back-to-json-btn');
         
         const quizSection = document.getElementById('quiz-section');
         const quitQuizBtn = document.getElementById('quit-quiz-btn');
         const progressText = document.getElementById('progress-text');
         const questionTitle = document.getElementById('question-title');
-        const svgContainer = document.getElementById('question-svg-container'); // (신규) SVG 컨테이너
+        const svgContainer = document.getElementById('question-svg-container');
         const optionsList = document.getElementById('options-list');
         const feedbackText = document.getElementById('feedback-text');
-        const explanationText = document.getElementById('explanation-text'); // (신규) 풀이 텍스트 요소
+        const explanationText = document.getElementById('explanation-text');
         const nextQuestionBtn = document.getElementById('next-question-btn');
 
         const resultsSection = document.getElementById('results-section');
@@ -249,22 +387,17 @@
                         throw new Error("JSON 형식이 올바르지 않습니다. 'question', 'options' 배열, 'answerIndex' 숫자가 필요합니다.");
                     }
                     
-                    // (수정) options 배열의 각 항목이 {text: "..."} 객체인지 검사
                     for (const opt of item.options) {
                         if (typeof opt !== 'object' || opt === null || typeof opt.text !== 'string') {
                             throw new Error("각 'options' 항목은 'text' 속성을 가진 객체(object)여야 합니다.");
                         }
-                        // (신규) 옵션의 svgImage 속성이 있다면, 문자열이어야 함
                         if (opt.svgImage && typeof opt.svgImage !== 'string') {
                             throw new Error("options의 'svgImage' 속성이 존재한다면, 문자열(string)이어야 합니다.");
                         }
                     }
-
-                    // (신규) svgImage 속성이 있다면, 문자열이어야 함
                     if (item.svgImage && typeof item.svgImage !== 'string') {
                         throw new Error("'svgImage' 속성이 존재한다면, 문자열(string)이어야 합니다.");
                     }
-                    // (신규) explanation 속성이 있다면, 문자열이어야 함
                     if (item.explanation && typeof item.explanation !== 'string') {
                         throw new Error("'explanation' 속성이 존재한다면, 문자열(string)이어야 합니다.");
                     }
@@ -276,8 +409,8 @@
                 
                 // 컨트롤 버튼 표시
                 questionCount.textContent = quizData.length;
-                loadStatus.classList.remove('hidden'); // (신규) 로드 상태 텍스트
-                actionControls.classList.remove('hidden'); // (수정) action-controls 표시
+                loadStatus.classList.remove('hidden'); 
+                actionControls.classList.remove('hidden'); 
                 
                 // 다른 섹션 숨기기
                 quizSection.classList.add('hidden');
@@ -289,7 +422,7 @@
                 quizData = [];
                 jsonError.textContent = `JSON 오류: ${error.message}`;
                 jsonError.classList.remove('hidden');
-                actionControls.classList.add('hidden'); // (수정) action-controls 숨기기
+                actionControls.classList.add('hidden'); 
             }
         }
 
@@ -298,7 +431,7 @@
             currentQuestionIndex = 0;
             score = 0;
             
-            actionControls.classList.add('hidden'); // (수정) action-controls 숨기기
+            actionControls.classList.add('hidden'); 
             resultsSection.classList.add('hidden');
             quizSection.classList.remove('hidden');
             
@@ -310,8 +443,8 @@
             // 초기화
             isAnswered = false;
             feedbackText.textContent = '';
-            explanationText.textContent = ''; // (신규) 풀이 텍스트 비우기
-            explanationText.classList.add('hidden'); // (신규) 풀이 텍스트 숨기기
+            explanationText.textContent = '';
+            explanationText.classList.add('hidden');
             nextQuestionBtn.classList.add('hidden');
             
             const currentQuestion = quizData[currentQuestionIndex];
@@ -319,76 +452,62 @@
             progressText.textContent = `문제 ${currentQuestionIndex + 1} / ${quizData.length}`;
             questionTitle.textContent = currentQuestion.question;
             
-            // (신규) SVG 렌더링 로직
             if (currentQuestion.svgImage) {
-                // svgImage 문자열을 HTML로 삽입
                 svgContainer.innerHTML = currentQuestion.svgImage;
-                // SVG 컨테이너를 보여줌
                 svgContainer.classList.remove('hidden');
             } else {
-                // SVG가 없는 문제
-                svgContainer.innerHTML = ''; // 비우기
-                svgContainer.classList.add('hidden'); // 숨기기
+                svgContainer.innerHTML = '';
+                svgContainer.classList.add('hidden');
             }
 
             // 보기 버튼 생성 (SVG로 변경)
-            optionsList.innerHTML = ''; // 이전 보기 삭제
-            const svgNS = "http://www.w3.org/2000/svg"; // SVG 네임스페이스
+            optionsList.innerHTML = '';
+            const svgNS = "http://www.w3.org/2000/svg";
 
             currentQuestion.options.forEach((option, index) => {
                 const li = document.createElement('li');
                 
-                // SVG 요소 생성
                 const svg = document.createElementNS(svgNS, 'svg');
                 svg.setAttribute('width', '100%');
-                svg.setAttribute('height', '56'); // 버튼 높이 56px
-                svg.setAttribute('viewBox', '0 0 500 56'); // 500x56 뷰박스
-                svg.classList.add('svg-option'); // CSS 클래스 추가
+                svg.setAttribute('height', '56');
+                svg.setAttribute('viewBox', '0 0 500 56');
+                svg.classList.add('svg-option');
+                svg.style.cursor = 'pointer';
 
-                // SVG 배경 (사각형)
                 const rect = document.createElementNS(svgNS, 'rect');
                 rect.setAttribute('x', '1');
                 rect.setAttribute('y', '1');
-                rect.setAttribute('width', '498'); // 뷰박스 너비 - (테두리*2)
-                rect.setAttribute('height', '54'); // 뷰박스 높이 - (테두리*2)
-                rect.setAttribute('rx', '8'); // 둥근 모서리
+                rect.setAttribute('width', '498');
+                rect.setAttribute('height', '54');
+                rect.setAttribute('rx', '8');
                 rect.setAttribute('ry', '8');
-                rect.setAttribute('fill', '#f3f4f6'); // bg-gray-100
-                rect.setAttribute('stroke', '#d1d5db'); // border-gray-300
+                rect.setAttribute('fill', '#f3f4f6');
+                rect.setAttribute('stroke', '#d1d5db');
                 rect.setAttribute('stroke-width', '1.5');
                 
-                // SVG 텍스트
                 const text = document.createElementNS(svgNS, 'text');
-                text.setAttribute('x', '20'); // 왼쪽 여백 20
-                text.setAttribute('y', '28'); // 높이의 절반
+                text.setAttribute('x', '20');
+                text.setAttribute('y', '28');
                 text.setAttribute('dominant-baseline', 'middle');
-                text.setAttribute('fill', '#111827'); // text-gray-900
+                text.setAttribute('fill', '#111827');
                 text.setAttribute('font-size', '16');
                 text.setAttribute('font-family', "'Inter', 'Pretendard', sans-serif");
-                text.textContent = `(${index + 1}) ${option.text}`; // (수정) option.text 사용
-                
-                // 나중에 쉽게 참조할 수 있도록 rect를 svg 객체에 저장
-                svg.rect = rect; 
+                text.textContent = `(${index + 1}) ${option.text}`;
 
-                // SVG 조립
                 svg.appendChild(rect);
                 svg.appendChild(text);
 
-                // (신규) 선지(option)에 svgImage가 있다면 렌더링
                 if (option.svgImage) {
                     const foreignObject = document.createElementNS(svgNS, 'foreignObject');
-                    // SVG 버튼(viewBox 500)의 우측에 40x40 영역 할당
-                    foreignObject.setAttribute('x', '440'); // 500 - 50 (여유) - 10 (패딩)
-                    foreignObject.setAttribute('y', '8');  // (56 - 40) / 2
+                    foreignObject.setAttribute('x', '440');
+                    foreignObject.setAttribute('y', '8');
                     foreignObject.setAttribute('width', '40');
                     foreignObject.setAttribute('height', '40');
                     
-                    // foreignObject 내부에 HTML(div)을 넣어 SVG 문자열을 삽입
                     const div = document.createElement('div');
-                    div.setAttribute('style', 'width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;');
-                    div.innerHTML = option.svgImage; // SVG 문자열 삽입
+                    div.setAttribute('style', 'width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; pointer-events: none;');
+                    div.innerHTML = option.svgImage;
 
-                    // 삽입된 SVG가 컨테이너에 맞도록 크기 조절
                     const embeddedSvg = div.querySelector('svg');
                     if (embeddedSvg) {
                         embeddedSvg.setAttribute('width', '100%');
@@ -399,7 +518,6 @@
                     svg.appendChild(foreignObject);
                 }
                 
-                // 클릭 이벤트 리스너를 SVG에 직접 연결
                 svg.addEventListener('click', () => selectAnswer(svg, index));
                 
                 li.appendChild(svg);
@@ -409,64 +527,69 @@
 
         /** 4. 답안 선택 (SVG 버전) */
         function selectAnswer(selectedSvg, selectedIndex) {
-            if (isAnswered) return; // 이미 답을 선택했다면 무시
+            if (isAnswered) return;
             
             isAnswered = true;
             const currentQuestion = quizData[currentQuestionIndex];
             const correctIndex = currentQuestion.answerIndex;
 
-            // 모든 SVG 요소를 가져옴 (수정: .svg-option 클래스만 선택)
             const allOptionSvgs = optionsList.querySelectorAll('.svg-option');
-            
-            // 선택한 SVG의 rect 요소를 가져옴 (수정: .rect 속성이 없으면 querySelector로 찾음)
-            const selectedRect = selectedSvg.rect || selectedSvg.querySelector('rect');
+            const selectedRect = selectedSvg.querySelector('rect');
+
+            if (!selectedRect) {
+                console.error("오류: 선택한 SVG에서 'rect' 요소를 찾을 수 없습니다.", selectedSvg);
+                return;
+            }
 
             if (selectedIndex === correctIndex) {
                 // 정답
                 score++;
-                // SVG 속성 변경: 초록색
-                selectedRect.setAttribute('fill', '#dcfce7'); // bg-green-100
-                selectedRect.setAttribute('stroke', '#22c55e'); // border-green-500
+                selectedRect.setAttribute('fill', '#dcfce7');
+                selectedRect.setAttribute('stroke', '#22c55e');
                 selectedRect.setAttribute('stroke-width', '2');
                 
                 feedbackText.textContent = '🎉 정답입니다!';
                 feedbackText.style.color = 'green';
             } else {
                 // 오답
-                // SVG 속성 변경: 붉은색
-                selectedRect.setAttribute('fill', '#fee2e2'); // bg-red-100
-                selectedRect.setAttribute('stroke', '#ef4444'); // border-red-500
+                selectedRect.setAttribute('fill', '#fee2e2');
+                selectedRect.setAttribute('stroke', '#ef4444');
                 selectedRect.setAttribute('stroke-width', '2');
 
                 feedbackText.textContent = '❌ 틀렸습니다.';
                 feedbackText.style.color = 'red';
 
-                // 실제 정답 SVG에 초록색 표시
                 const correctSvg = allOptionSvgs[correctIndex];
-                // (수정: .rect 속성이 없으면 querySelector로 찾음)
-                const correctRect = correctSvg.rect || correctSvg.querySelector('rect');
+
+                if (!correctSvg) {
+                    console.error("오류: 정답 인덱스에 해당하는 SVG 요소를 찾을 수 없습니다.", correctIndex);
+                    return;
+                }
+                
+                const correctRect = correctSvg.querySelector('rect');
+
+                if (!correctRect) {
+                    console.error("오류: 정답 SVG에서 'rect' 요소를 찾을 수 없습니다.", correctSvg);
+                    return;
+                }
                 correctRect.setAttribute('fill', '#dcfce7');
                 correctRect.setAttribute('stroke', '#22c55e');
                 correctRect.setAttribute('stroke-width', '2');
             }
 
-            // (신규) 풀이 텍스트 표시
             if (currentQuestion.explanation) {
-                explanationText.textContent = currentQuestion.explanation;
+                explanationText.textContent = `풀이: ${currentQuestion.explanation}`;
                 explanationText.classList.remove('hidden');
             }
 
-            // 다음 문제 버튼 표시
-            if (currentQuestionIndex < quizData.length - 1) {
-                nextQuestionBtn.textContent = '다음 문제';
-            } else {
-                nextQuestionBtn.textContent = '결과 보기';
-            }
             nextQuestionBtn.classList.remove('hidden');
+            allOptionSvgs.forEach(svg => {
+                svg.style.cursor = 'default';
+            });
         }
 
-        /** 5. 다음 문제 또는 결과 보기 */
-        function showNext() {
+        /** 5. 다음 문제로 이동 */
+        function goToNextQuestion() {
             currentQuestionIndex++;
             if (currentQuestionIndex < quizData.length) {
                 loadQuestion();
@@ -475,40 +598,40 @@
             }
         }
 
-        /** 6. 최종 결과 표시 */
+        /** 6. 결과 화면 표시 */
         function showResults() {
             quizSection.classList.add('hidden');
             resultsSection.classList.remove('hidden');
-
-            totalQuestionsResult.textContent = quizData.length;
-            finalScore.textContent = score;
+            
+            totalQuestionsResult.textContent = `${quizData.length} 문제`;
+            finalScore.textContent = `${score} 개`;
         }
 
-        /** 7. 처음으로 돌아가기 (초기화) */
+        /** 7. 앱 초기화 (처음으로) */
         function resetApp() {
             quizData = [];
             currentQuestionIndex = 0;
             score = 0;
-
+            
             resultsSection.classList.add('hidden');
-            quizSection.classList.add('hidden');
-            actionControls.classList.add('hidden'); // (수정) action-controls 숨기기
+            actionControls.classList.add('hidden');
+            loadStatus.classList.add('hidden');
             
             document.getElementById('json-input-section').classList.remove('hidden');
+            jsonInput.value = DEFAULT_QUIZ_JSON;
             jsonError.classList.add('hidden');
-            loadDefaultJson(); // 예제 JSON 다시 채우기
-        }
-        
-        /** 8. 예제 JSON 채우기 */
-        function loadDefaultJson() {
-            jsonInput.value = DEFAULT_QUIZ_JSON.trim();
         }
 
-        /** 9. 인쇄용 HTML 생성 및 인쇄 호출 */
-        function prepareAndPrint() {
-            printableArea.innerHTML = ''; // 인쇄 영역 초기화
+        /** 8. 퀴즈 종료 (JSON 선택 화면으로) */
+        function quitQuiz() {
+            quizSection.classList.add('hidden');
+            actionControls.classList.remove('hidden');
+        }
 
-            // === 1부: 문제지 ===
+        /** 9a. 문제지만 인쇄하기 */
+        function printQuestionsOnly() {
+            printableArea.innerHTML = '';
+
             const questionsTitle = document.createElement('h1');
             questionsTitle.innerHTML = '퀴즈 문제지';
             questionsTitle.style.textAlign = 'center';
@@ -527,12 +650,11 @@
                 qTitle.textContent = `${index + 1}. ${question.question}`;
                 itemDiv.appendChild(qTitle);
 
-                // 2. (신규) 문제 SVG
+                // 2. 문제 SVG
                 if (question.svgImage) {
                     const svgContainer = document.createElement('div');
                     svgContainer.className = 'print-question-svg';
                     svgContainer.innerHTML = question.svgImage;
-                    // 인쇄 시 SVG 크기 강제 조절
                     const innerSvg = svgContainer.querySelector('svg');
                     if(innerSvg) {
                         innerSvg.setAttribute('width', '100%');
@@ -550,17 +672,14 @@
                     const li = document.createElement('li');
                     li.className = 'print-option-item';
                     
-                    // 3-1. 보기 텍스트
                     const textSpan = document.createElement('span');
                     textSpan.textContent = option.text;
                     li.appendChild(textSpan);
 
-                    // 3-2. (신규) 보기 SVG
                     if (option.svgImage) {
                         const optionSvgContainer = document.createElement('div');
                         optionSvgContainer.className = 'print-option-svg';
                         optionSvgContainer.innerHTML = option.svgImage;
-                        // 인쇄 시 SVG 크기 강제 조절
                         const innerOptionSvg = optionSvgContainer.querySelector('svg');
                         if(innerOptionSvg) {
                             innerOptionSvg.setAttribute('width', '100%');
@@ -576,30 +695,33 @@
                 printableArea.appendChild(itemDiv);
             });
 
-            // === 2부: 정답지 (새 페이지에 시작) ===
+            window.print();
+        }
+
+        /** 9b. 정답/해설만 인쇄하기 */
+        function printAnswersOnly() {
+            printableArea.innerHTML = '';
+
             const answersTitle = document.createElement('h1');
             answersTitle.innerHTML = '정답 및 풀이';
-            answersTitle.className = 'print-answer-key-title'; // CSS에서 page-break-before 적용
+            answersTitle.className = 'print-answer-key-title';
             printableArea.appendChild(answersTitle);
 
             quizData.forEach((question, index) => {
                 const answerItemDiv = document.createElement('div');
-                answerItemDiv.className = 'print-answer-item'; // CSS에서 page-break-inside: avoid 적용
+                answerItemDiv.className = 'print-answer-item';
 
-                // 1. 문제 번호
                 const qNum = document.createElement('h3');
                 qNum.style.fontWeight = 'bold';
                 qNum.textContent = `[${index + 1}번 문제]`;
                 answerItemDiv.appendChild(qNum);
                 
-                // 2. 정답
                 const answer = document.createElement('p');
                 answer.className = 'print-answer';
                 const correctOptionText = question.options[question.answerIndex].text;
                 answer.textContent = `정답: (${question.answerIndex + 1}) ${correctOptionText}`;
                 answerItemDiv.appendChild(answer);
                 
-                // 3. 풀이
                 if (question.explanation) {
                     const explanation = document.createElement('p');
                     explanation.className = 'print-explanation';
@@ -610,70 +732,64 @@
                 printableArea.appendChild(answerItemDiv);
             });
 
-            // 시스템 인쇄 대화상자 호출
             window.print();
         }
 
-        /** (신규) 10. JSON 텍스트 복사 */
+        /** 10. JSON 텍스트 복사 */
         function copyJsonToClipboard() {
-            jsonInput.select(); // 텍스트 선택
+            jsonInput.select();
             
             try {
-                // 'copy' 명령 실행 (클립보드 API보다 구형 브라우저 및 iframe 호환성이 좋음)
                 document.execCommand('copy');
-                
-                // 사용자 피드백
-                const originalText = copyJsonBtn.textContent;
                 copyJsonBtn.textContent = '복사 완료!';
-                copyJsonBtn.classList.replace('bg-green-600', 'bg-green-800'); // 색상 변경
+                copyJsonBtn.classList.add('bg-green-200');
                 
                 setTimeout(() => {
-                    copyJsonBtn.textContent = originalText;
-                    copyJsonBtn.classList.replace('bg-green-800', 'bg-green-600'); // 원상 복구
+                    copyJsonBtn.textContent = '예제 복사'; // (수정) 버튼 텍스트
+                    copyJsonBtn.classList.remove('bg-green-200');
                 }, 2000);
-
             } catch (err) {
-                console.error('JSON 복사 실패:', err);
-                jsonError.textContent = '클립보드 복사에 실패했습니다.';
-                jsonError.classList.remove('hidden');
+                console.error('클립보드 복사 실패:', err);
+                alert('복사에 실패했습니다.');
             }
         }
+        
+        /** 11. JSON 수정하기 (액션 컨트롤 -> JSON 입력) */
+        function backToJsonEditor() {
+            actionControls.classList.add('hidden');
+            loadStatus.classList.add('hidden');
+            document.getElementById('json-input-section').classList.remove('hidden');
+        }
 
+        /** (신규) 12. JSON 입력창 비우기 */
+        function clearJsonInput() {
+            jsonInput.value = ''; // 입력창 텍스트 삭제
+            jsonError.classList.add('hidden'); // 오류 메시지 숨기기
+        }
 
         // --- 이벤트 리스너 연결 ---
-        
-        // 페이지 로드 시 예제 JSON 채우기
-        document.addEventListener('DOMContentLoaded', loadDefaultJson);
-
-        // 1. JSON 불러오기 버튼
-        loadJsonBtn.addEventListener('click', loadJsonData);
-
-        // 1-1. 예제 JSON 복원 버튼
-        resetDefaultJsonBtn.addEventListener('click', loadDefaultJson);
-        
-        // (신규) 1-2. JSON 복사 버튼
-        copyJsonBtn.addEventListener('click', copyJsonToClipboard);
-
-        // 2-1. 퀴즈 시작 버튼
-        startQuizBtn.addEventListener('click', startQuiz);
-
-        // 2-2. 인쇄 버튼
-        printBtn.addEventListener('click', prepareAndPrint);
-
-        // (신규) 2-3. JSON 수정으로 돌아가기 버튼
-        backToJsonBtn.addEventListener('click', () => {
-            actionControls.classList.add('hidden');
-            document.getElementById('json-input-section').classList.remove('hidden');
+        window.addEventListener('DOMContentLoaded', () => {
+            jsonInput.value = DEFAULT_QUIZ_JSON;
+            
+            loadJsonBtn.addEventListener('click', loadJsonData);
+            
+            resetDefaultJsonBtn.addEventListener('click', () => {
+                jsonInput.value = DEFAULT_QUIZ_JSON;
+                jsonError.classList.add('hidden');
+            });
+            copyJsonBtn.addEventListener('click', copyJsonToClipboard);
+            clearJsonBtn.addEventListener('click', clearJsonInput); // (신규) 삭제 버튼 리스너
+            
+            backToJsonBtn.addEventListener('click', backToJsonEditor);
+            
+            startQuizBtn.addEventListener('click', startQuiz);
+            printQuestionsBtn.addEventListener('click', printQuestionsOnly);
+            printAnswersBtn.addEventListener('click', printAnswersOnly);
+            
+            quitQuizBtn.addEventListener('click', quitQuiz);
+            nextQuestionBtn.addEventListener('click', goToNextQuestion);
+            restartQuizBtn.addEventListener('click', resetApp);
         });
-
-        // 3-1. 다음 문제 버튼
-        nextQuestionBtn.addEventListener('click', showNext);
-        
-        // 3-2. 퀴즈 중단 버튼
-        quitQuizBtn.addEventListener('click', resetApp);
-        
-        // 4-1. 다시 풀기 버튼 (결과 화면)
-        restartQuizBtn.addEventListener('click', resetApp);
 
     </script>
 </body>
