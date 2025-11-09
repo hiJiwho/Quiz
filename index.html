@@ -227,9 +227,16 @@
                     </button>
                 </div>
             </div>
-             <button id="back-to-json-btn" class="w-full bg-gray-200 text-gray-700 p-3 rounded-lg hover:bg-gray-300 transition mt-4">
-                JSON 수정하기
-            </button>
+            
+             <!-- (수정) JSON 수정하기 / 공유하기 버튼 그룹 -->
+             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <button id="back-to-json-btn" class="w-full bg-gray-200 text-gray-700 p-3 rounded-lg hover:bg-gray-300 transition">
+                    JSON 수정하기
+                </button>
+                <button id="share-link-btn" class="w-full bg-blue-100 text-blue-700 p-3 rounded-lg hover:bg-blue-200 transition">
+                    공유 링크 생성
+                </button>
+             </div>
         </div>
 
         <!-- 3. 퀴즈 풀기 섹션 (퀴즈 시작 후 보임) -->
@@ -367,6 +374,7 @@
         const printQuestionsBtn = document.getElementById('print-questions-btn');
         const printAnswersBtn = document.getElementById('print-answers-btn');
         const backToJsonBtn = document.getElementById('back-to-json-btn');
+        const shareLinkBtn = document.getElementById('share-link-btn'); // (신규)
         
         const quizSection = document.getElementById('quiz-section');
         const quitQuizBtn = document.getElementById('quit-quiz-btn');
@@ -635,6 +643,8 @@
             loadStatus.classList.add('hidden');
             
             document.getElementById('json-input-section').classList.remove('hidden');
+            // (수정) URL 쿼리 스트링을 지우고 앱을 리셋함
+            window.history.pushState({}, '', window.location.pathname);
             jsonInput.value = DEFAULT_QUIZ_JSON;
             jsonError.classList.add('hidden');
         }
@@ -654,7 +664,7 @@
             questionsTitle.className = 'print-answer-key-title';
             printableArea.appendChild(questionsTitle);
             
-            // (신규) 2열 컨테이너 생성
+            // 2열 컨테이너 생성
             const questionsContainer = document.createElement('div');
             questionsContainer.className = 'print-column-container';
 
@@ -710,11 +720,9 @@
                 });
                 itemDiv.appendChild(optionsOl);
 
-                // (수정) itemDiv를 2열 컨테이너에 추가
                 questionsContainer.appendChild(itemDiv);
             });
             
-            // (수정) 2열 컨테이너를 printableArea에 추가
             printableArea.appendChild(questionsContainer);
 
             window.print();
@@ -753,7 +761,7 @@
             detailedTitle.className = 'print-detailed-explanation-title';
             printableArea.appendChild(detailedTitle);
 
-            // (신규) 2열 컨테이너 생성
+            // 2열 컨테이너 생성
             const explanationsContainer = document.createElement('div');
             explanationsContainer.className = 'print-column-container';
 
@@ -782,11 +790,9 @@
                     answerItemDiv.appendChild(explanation);
                 }
                 
-                // (수정) answerItemDiv를 2열 컨테이너에 추가
                 explanationsContainer.appendChild(answerItemDiv);
             });
             
-            // (수정) 2열 컨테이너를 printableArea에 추가
             printableArea.appendChild(explanationsContainer);
 
             window.print();
@@ -824,9 +830,91 @@
             jsonError.classList.add('hidden');
         }
 
+        /** (수정) 13. URL 쿼리 스트링에서 퀴즈 로드 */
+        function loadQuizFromUrl() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const quizDataB64 = urlParams.get('q'); // ?q=...
+
+                if (quizDataB64) {
+                    // (수정) btoa 오류를 해결하기 위해 UTF-8 디코딩 파이프라인 적용
+                    // 1. Base64 디코딩 (URL-safe 문자 처리)
+                    const standardBase64 = quizDataB64.replace(/-/g, '+').replace(/_/g, '/');
+                    const binaryString = atob(standardBase64);
+                    
+                    // 2. 바이너리 문자열 -> UTF-8 바이트 배열
+                    const utf8Bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) {
+                        utf8Bytes[i] = binaryString.charCodeAt(i);
+                    }
+                    
+                    // 3. UTF-8 바이트 배열 -> 유니코드(한글) 문자열
+                    const decodedJson = new TextDecoder().decode(utf8Bytes);
+                    
+                    // 4. 텍스트 영역에 삽입
+                    jsonInput.value = decodedJson;
+                    
+                    // 5. 자동으로 "문제 불러오기" 클릭
+                    loadJsonBtn.click();
+                    return true; // 로드 성공
+                }
+            } catch (error) {
+                console.error("URL에서 퀴즈 로드 실패:", error);
+                jsonError.textContent = "URL에서 퀴즈를 불러오는 데 실패했습니다. 링크가 올바른지 확인하세요.";
+                jsonError.classList.remove('hidden');
+            }
+            return false; // 로드 실패 또는 쿼리 없음
+        }
+
+        /** (수정) 14. 공유 링크 생성 */
+        function generateShareLink() {
+            try {
+                const jsonData = jsonInput.value;
+
+                // (수정) btoa 오류를 해결하기 위해 UTF-8 인코딩 파이프라인 적용
+                // 1. 유니코드 문자열 -> UTF-8 바이트 배열
+                const utf8Bytes = new TextEncoder().encode(jsonData);
+                
+                // 2. 바이트 배열 -> btoa가 처리할 수 있는 바이너리 문자열
+                const binaryString = String.fromCodePoint(...utf8Bytes);
+                
+                // 3. Base64 인코딩 및 URL-safe 문자 처리
+                const base64Data = btoa(binaryString).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+                
+                const shareUrl = `${window.location.origin}${window.location.pathname}?q=${base64Data}`;
+
+                // 임시 텍스트 영역을 만들어 복사
+                const tempInput = document.createElement('textarea');
+                tempInput.value = shareUrl;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempInput);
+                
+                shareLinkBtn.textContent = '링크 복사 완료!';
+                shareLinkBtn.classList.add('bg-green-200');
+                
+                setTimeout(() => {
+                    shareLinkBtn.textContent = '공유 링크 생성';
+                    shareLinkBtn.classList.remove('bg-green-200');
+                }, 2000);
+
+            } catch (error) {
+                console.error("공유 링크 생성 실패:", error);
+                alert("링크 생성에 실패했습니다. (JSON 데이터가 너무 클 수 있습니다)");
+            }
+        }
+
         // --- 이벤트 리스너 연결 ---
         window.addEventListener('DOMContentLoaded', () => {
-            jsonInput.value = DEFAULT_QUIZ_JSON;
+            
+            // (수정) URL 쿼리부터 확인
+            const loadedFromUrl = loadQuizFromUrl();
+            
+            // URL에서 로드하지 않은 경우에만 기본 JSON 설정
+            if (!loadedFromUrl) {
+                jsonInput.value = DEFAULT_QUIZ_JSON;
+            }
             
             loadJsonBtn.addEventListener('click', loadJsonData);
             
@@ -838,6 +926,7 @@
             clearJsonBtn.addEventListener('click', clearJsonInput);
             
             backToJsonBtn.addEventListener('click', backToJsonEditor);
+            shareLinkBtn.addEventListener('click', generateShareLink); // (신규)
             
             startQuizBtn.addEventListener('click', startQuiz);
             printQuestionsBtn.addEventListener('click', printQuestionsOnly);
