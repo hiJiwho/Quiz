@@ -14,6 +14,7 @@
 
         /* * ======================================
          * 인쇄 전용 스타일 (A4 용지)
+         * (수정) 폰트 크기 및 여백 축소
          * ======================================
          */
         @media print {
@@ -33,35 +34,30 @@
              */
             @page {
                 size: A4;
-                margin: 2cm; /* 상하좌우 여백 2cm */
+                margin: 1.5cm; /* (수정) 여백 축소 */
             }
 
             /* * 4. 인쇄용 폰트 및 페이지 나눔 설정
              */
             #printable-area {
-                font-size: 11pt; /* 인쇄에 적합한 폰트 크기 */
+                font-size: 10pt; /* (수정) 기본 폰트 크기 축소 */
                 color: #000;
             }
 
             .print-question-item {
-                margin-bottom: 20px;
-                /* * 문제가 다음 페이지로 잘리지 않도록 설정
-                 * (한 문제가 페이지 중간에 잘리는 것을 방지)
-                 */
+                margin-bottom: 15px; /* (수정) 문제 간 간격 축소 */
                 page-break-inside: avoid; 
             }
 
             .print-question-title {
-                font-size: 1.2em;
+                font-size: 1.1em; /* (수정) 폰트 크기 축소 */
                 font-weight: bold;
-                margin-bottom: 8px;
+                margin-bottom: 6px; /* (수정) 여백 축소 */
             }
             
-            /* (신규) 문제에 포함된 SVG */
             .print-question-svg {
-                margin: 10px 0;
-                text-align: center;
-                max-width: 300px; /* SVG 최대 너비 */
+                margin: 8px 0; /* (수정) 여백 축소 */
+                max-width: 250px; /* (수정) SVG 크기 살짝 줄임 */
                 margin-left: auto;
                 margin-right: auto;
             }
@@ -77,16 +73,15 @@
                 padding-left: 5px;
             }
 
-            /* (신규) 보기에 포함된 SVG */
             .print-option-item {
                 display: flex;
                 align-items: center;
-                margin-bottom: 5px;
+                margin-bottom: 4px; /* (수정) 보기 간 간격 축소 */
             }
             .print-option-svg {
-                width: 30px; /* 보기 SVG 크기 */
-                height: 30px;
-                margin-left: 10px;
+                width: 28px; /* (수정) 보기 SVG 크기 축소 */
+                height: 28px;
+                margin-left: 8px; /* (수정) 여백 축소 */
                 border: 1px solid #ddd;
                 display: inline-flex;
                 align-items: center;
@@ -101,33 +96,60 @@
             .print-answer {
                 font-weight: bold;
                 color: #333;
-                margin-top: 8px;
+                margin-top: 6px; /* (수정) 여백 축소 */
             }
             
-            /* (신규) 인쇄용 풀이 스타일 */
             .print-explanation {
-                font-size: 0.95em;
-                font-style: italic;
+                font-size: 0.95em; /* (수정) 풀이 폰트 크기 축소 */
                 color: #444;
-                margin-top: 6px;
-                border-left: 3px solid #ddd;
-                padding-left: 10px;
+                margin-top: 5px; /* (수정) 여백 축소 */
+                border-left: 2px solid #ddd;
+                padding-left: 8px;
             }
             
-            /* (신규) 정답지 제목 (페이지 넘김) */
             .print-answer-key-title {
-                /* page-break-before: always; */ /* (수정) 이 규칙을 제거합니다. */
                 text-align: center;
-                font-size: 1.5em;
+                font-size: 1.4em; /* (수정) 폰트 크기 축소 */
                 font-weight: bold;
-                margin-top: 1cm;
+                margin-top: 0.5cm; /* (수정) 여백 축소 */
+                margin-bottom: 15px; /* (수정) 여백 축소 */
+            }
+            
+            /* (신규) 빠른 정답표 스타일 */
+            .print-quick-key-title {
+                font-size: 1.2em;
+                font-weight: bold;
+                margin-top: 15px;
+                margin-bottom: 10px;
+                border-bottom: 1px solid #666;
+                padding-bottom: 5px;
+            }
+            .print-quick-key-container {
                 margin-bottom: 20px;
+                page-break-inside: avoid; /* 빠른 정답표가 잘리지 않게 */
+                font-size: 11pt; /* 빠른 정답은 조금 더 잘보이게 */
+            }
+            .print-quick-key-item {
+                display: inline-block;
+                margin: 0 10px 5px 0;
+                font-weight: bold;
+                min-width: 60px; /* (예: '10. (5)') */
             }
 
-            /* (신규) 정답지 개별 항목 */
+            /* (신규) 상세 풀이 제목 */
+            .print-detailed-explanation-title {
+                font-size: 1.2em;
+                font-weight: bold;
+                margin-top: 25px; /* 빠른 정답표와 간격 */
+                margin-bottom: 10px;
+                border-bottom: 1px solid #666;
+                padding-bottom: 5px;
+                /* page-break-before: always; */ /* (주석 처리) 페이지 절약을 위해 강제 페이지 나눔은 뺌 */
+            }
+
             .print-answer-item {
-                margin-bottom: 15px;
-                page-break-inside: avoid; /* 답과 풀이가 페이지 중간에 잘리지 않도록 */
+                margin-bottom: 12px; /* (수정) 풀이 간 간격 축소 */
+                page-break-inside: avoid;
             }
         }
 
@@ -183,11 +205,6 @@
                     </button>
                 </div>
             </div>
-            <!-- (수정) 기존 버튼 그룹 (삭제됨)
-            <div class="flex flex-wrap gap-3 mt-4">
-                ...
-            </div>
-            -->
         </div>
         
         <!-- 2. 액션 컨트롤 섹션 (JSON 로드 후 보임) -->
@@ -195,12 +212,10 @@
             <div id="load-status" class="hidden mb-4 p-4 bg-green-100 text-green-800 rounded-lg">
                 <span id="question-count" class="font-bold">0</span>개의 문제를 성공적으로 불러왔습니다.
             </div>
-            <!-- (수정) 퀴즈 시작 버튼과 인쇄 버튼 영역을 분리 -->
             <div class="grid grid-cols-1 gap-4">
                 <button id="start-quiz-btn" class="w-full bg-green-600 text-white p-4 rounded-lg font-bold text-lg hover:bg-green-700 transition">
                     2. 퀴즈 풀기 시작!
                 </button>
-                <!-- (신규) 인쇄 버튼 2개를 가로로 배치 -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <button id="print-questions-btn" class="w-full bg-gray-700 text-white p-4 rounded-lg font-bold text-lg hover:bg-gray-800 transition">
                         문제지만 인쇄하기
@@ -220,15 +235,15 @@
             <!-- 퀴즈 상단 바 -->
             <div class="flex justify-between items-center mb-6">
                 <span id="progress-text" class="text-lg font-semibold text-gray-700">문제 1 / 10</span>
+                <!-- (수정) 퀴즈 종료 -> 처음으로 텍스트 변경 -->
                 <button id="quit-quiz-btn" class="text-sm text-red-600 hover:text-red-800 font-medium">
-                    퀴즈 종료
+                    처음으로
                 </button>
             </div>
 
             <!-- 문제 -->
             <h2 id="question-title" class="text-2xl font-bold text-gray-900 mb-4"></h2>
             
-            <!-- (신규) 문제 SVG 컨테이너 -->
             <div id="question-svg-container" class="my-5 flex justify-center hidden">
                 <!-- JS가 이곳에 SVG를 삽입 -->
             </div>
@@ -341,7 +356,7 @@
         const loadJsonBtn = document.getElementById('load-json-btn');
         const resetDefaultJsonBtn = document.getElementById('reset-default-json-btn');
         const copyJsonBtn = document.getElementById('copy-json-btn');
-        const clearJsonBtn = document.getElementById('clear-json-btn'); // (신규) 삭제 버튼
+        const clearJsonBtn = document.getElementById('clear-json-btn'); 
         
         const actionControls = document.getElementById('action-controls');
         const loadStatus = document.getElementById('load-status');
@@ -492,7 +507,7 @@
                 text.setAttribute('fill', '#111827');
                 text.setAttribute('font-size', '16');
                 text.setAttribute('font-family', "'Inter', 'Pretendard', sans-serif");
-                text.textContent = `(${index + 1}) ${option.text}`;
+                text.textContent = `(${index + 1}) ${option.text}`; // (수정) (1), (2) ... 번호 추가
 
                 svg.appendChild(rect);
                 svg.appendChild(text);
@@ -613,6 +628,8 @@
             currentQuestionIndex = 0;
             score = 0;
             
+            // (수정) 퀴즈 풀기 섹션도 숨기기
+            quizSection.classList.add('hidden');
             resultsSection.classList.add('hidden');
             actionControls.classList.add('hidden');
             loadStatus.classList.add('hidden');
@@ -622,7 +639,7 @@
             jsonError.classList.add('hidden');
         }
 
-        /** 8. 퀴즈 종료 (JSON 선택 화면으로) */
+        /** 8. 퀴즈 종료 (JSON 선택 화면으로) - (현재 quitQuizBtn이 resetApp을 호출하므로 이 함수는 사용되지 않음) */
         function quitQuiz() {
             quizSection.classList.add('hidden');
             actionControls.classList.remove('hidden');
@@ -634,10 +651,7 @@
 
             const questionsTitle = document.createElement('h1');
             questionsTitle.innerHTML = '퀴즈 문제지';
-            questionsTitle.style.textAlign = 'center';
-            questionsTitle.style.fontSize = '1.5em';
-            questionsTitle.style.fontWeight = 'bold';
-            questionsTitle.style.marginBottom = '30px';
+            questionsTitle.className = 'print-answer-key-title'; // (수정) 큰 제목 스타일 재사용
             printableArea.appendChild(questionsTitle);
 
             quizData.forEach((question, index) => {
@@ -663,10 +677,10 @@
                     itemDiv.appendChild(svgContainer);
                 }
 
-                // 3. 보기
+                // 3. 보기 (ol/li가 (1,2,3)을 자동으로 생성)
                 const optionsOl = document.createElement('ol');
                 optionsOl.className = 'print-options';
-                optionsOl.setAttribute('type', '1');
+                optionsOl.setAttribute('type', '1'); // 1, 2, 3...
                 
                 question.options.forEach(option => {
                     const li = document.createElement('li');
@@ -698,30 +712,57 @@
             window.print();
         }
 
-        /** 9b. 정답/해설만 인쇄하기 */
+        /** (수정) 9b. 정답/해설만 인쇄하기 (빠른 정답 + 상세 풀이) */
         function printAnswersOnly() {
             printableArea.innerHTML = '';
 
+            // --- 0. 전체 제목 ---
             const answersTitle = document.createElement('h1');
             answersTitle.innerHTML = '정답 및 풀이';
             answersTitle.className = 'print-answer-key-title';
             printableArea.appendChild(answersTitle);
 
+            // --- 1. 빠른 정답 ---
+            const quickKeyTitle = document.createElement('h2');
+            quickKeyTitle.innerHTML = '빠른 정답';
+            quickKeyTitle.className = 'print-quick-key-title';
+            printableArea.appendChild(quickKeyTitle);
+
+            const quickKeyContainer = document.createElement('div');
+            quickKeyContainer.className = 'print-quick-key-container';
+            
+            quizData.forEach((question, index) => {
+                const keyItem = document.createElement('span');
+                keyItem.className = 'print-quick-key-item';
+                keyItem.textContent = `${index + 1}. (${question.answerIndex + 1})`; // 예: 1. (3)
+                quickKeyContainer.appendChild(keyItem);
+            });
+            printableArea.appendChild(quickKeyContainer);
+
+            // --- 2. 상세 풀이 ---
+            const detailedTitle = document.createElement('h2');
+            detailedTitle.innerHTML = '상세 풀이';
+            detailedTitle.className = 'print-detailed-explanation-title';
+            printableArea.appendChild(detailedTitle);
+
             quizData.forEach((question, index) => {
                 const answerItemDiv = document.createElement('div');
                 answerItemDiv.className = 'print-answer-item';
 
+                // 문제 번호
                 const qNum = document.createElement('h3');
                 qNum.style.fontWeight = 'bold';
                 qNum.textContent = `[${index + 1}번 문제]`;
                 answerItemDiv.appendChild(qNum);
                 
+                // 정답
                 const answer = document.createElement('p');
                 answer.className = 'print-answer';
                 const correctOptionText = question.options[question.answerIndex].text;
                 answer.textContent = `정답: (${question.answerIndex + 1}) ${correctOptionText}`;
                 answerItemDiv.appendChild(answer);
                 
+                // 풀이
                 if (question.explanation) {
                     const explanation = document.createElement('p');
                     explanation.className = 'print-explanation';
@@ -745,7 +786,7 @@
                 copyJsonBtn.classList.add('bg-green-200');
                 
                 setTimeout(() => {
-                    copyJsonBtn.textContent = '예제 복사'; // (수정) 버튼 텍스트
+                    copyJsonBtn.textContent = '예제 복사';
                     copyJsonBtn.classList.remove('bg-green-200');
                 }, 2000);
             } catch (err) {
@@ -761,10 +802,10 @@
             document.getElementById('json-input-section').classList.remove('hidden');
         }
 
-        /** (신규) 12. JSON 입력창 비우기 */
+        /** 12. JSON 입력창 비우기 */
         function clearJsonInput() {
-            jsonInput.value = ''; // 입력창 텍스트 삭제
-            jsonError.classList.add('hidden'); // 오류 메시지 숨기기
+            jsonInput.value = '';
+            jsonError.classList.add('hidden');
         }
 
         // --- 이벤트 리스너 연결 ---
@@ -778,7 +819,7 @@
                 jsonError.classList.add('hidden');
             });
             copyJsonBtn.addEventListener('click', copyJsonToClipboard);
-            clearJsonBtn.addEventListener('click', clearJsonInput); // (신규) 삭제 버튼 리스너
+            clearJsonBtn.addEventListener('click', clearJsonInput);
             
             backToJsonBtn.addEventListener('click', backToJsonEditor);
             
@@ -786,7 +827,9 @@
             printQuestionsBtn.addEventListener('click', printQuestionsOnly);
             printAnswersBtn.addEventListener('click', printAnswersOnly);
             
-            quitQuizBtn.addEventListener('click', quitQuiz);
+            // (수정) '퀴즈 종료' 버튼이 '처음으로'(resetApp)를 호출하도록 변경
+            quitQuizBtn.addEventListener('click', resetApp);
+            
             nextQuestionBtn.addEventListener('click', goToNextQuestion);
             restartQuizBtn.addEventListener('click', resetApp);
         });
