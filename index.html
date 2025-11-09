@@ -357,6 +357,7 @@
         let currentQuestionIndex = 0;
         let score = 0;
         let isAnswered = false; // 현재 문제에 답했는지 여부
+        let isLoadedFromUrl = false; // (신규) URL 해시로 로드되었는지 여부
 
         // --- DOM 요소 가져오기 ---
         const jsonInput = document.getElementById('json-input');
@@ -436,6 +437,15 @@
                 loadStatus.classList.remove('hidden'); 
                 actionControls.classList.remove('hidden'); 
                 
+                // (수정) URL로 로드된 경우, 수정/공유 버튼 숨기기
+                if (isLoadedFromUrl) {
+                    backToJsonBtn.classList.add('hidden');
+                    shareLinkBtn.classList.add('hidden');
+                } else {
+                    backToJsonBtn.classList.remove('hidden');
+                    shareLinkBtn.classList.remove('hidden');
+                }
+                
                 // 다른 섹션 숨기기
                 quizSection.classList.add('hidden');
                 resultsSection.classList.add('hidden');
@@ -444,6 +454,7 @@
             } catch (error) {
                 // 실패
                 quizData = [];
+                isLoadedFromUrl = false; // (수정) 실패 시 플래그 리셋
                 jsonError.textContent = `JSON 오류: ${error.message}`;
                 jsonError.classList.remove('hidden');
                 actionControls.classList.add('hidden'); 
@@ -636,6 +647,7 @@
             quizData = [];
             currentQuestionIndex = 0;
             score = 0;
+            isLoadedFromUrl = false; // (수정) URL 로드 플래그 리셋
             
             quizSection.classList.add('hidden');
             resultsSection.classList.add('hidden');
@@ -644,7 +656,7 @@
             
             document.getElementById('json-input-section').classList.remove('hidden');
             
-            // (수정) URL 쿼리 스트링과 해시를 모두 지우고 앱을 리셋함
+            // URL 해시를 지우고 앱을 리셋함
             window.history.pushState({}, '', window.location.pathname);
             jsonInput.value = DEFAULT_QUIZ_JSON;
             jsonError.classList.add('hidden');
@@ -831,60 +843,53 @@
             jsonError.classList.add('hidden');
         }
 
-        /** (수정) 13. URL에서 퀴즈 로드 (해시 사용) */
+        /** 13. URL에서 퀴즈 로드 (해시 사용) */
         function loadQuizFromUrl() {
             try {
                 const hash = window.location.hash;
 
                 if (hash && hash.startsWith('#q=')) {
-                    // (수정) #q= 를 제거
-                    const quizDataB64 = hash.substring(3); 
+                    isLoadedFromUrl = true; // (신규) URL로 로드되었음을 표시
+                    
+                    const quizDataB64 = hash.substring(3); // #q= 를 제거
                     
                     // btoa 오류를 해결하기 위해 UTF-8 디코딩 파이프라인 적용
-                    // 1. Base64 디코딩 (URL-safe 문자 처리)
                     const standardBase64 = quizDataB64.replace(/-/g, '+').replace(/_/g, '/');
                     const binaryString = atob(standardBase64);
                     
-                    // 2. 바이너리 문자열 -> UTF-8 바이트 배열
                     const utf8Bytes = new Uint8Array(binaryString.length);
                     for (let i = 0; i < binaryString.length; i++) {
                         utf8Bytes[i] = binaryString.charCodeAt(i);
                     }
                     
-                    // 3. UTF-8 바이트 배열 -> 유니코드(한글) 문자열
                     const decodedJson = new TextDecoder().decode(utf8Bytes);
                     
-                    // 4. 텍스트 영역에 삽입
                     jsonInput.value = decodedJson;
                     
-                    // 5. 자동으로 "문제 불러오기" 클릭
-                    loadJsonBtn.click();
+                    // 자동으로 "문제 불러오기" 클릭
+                    loadJsonBtn.click(); // loadJsonData()가 호출되고 quizData가 채워짐
                     return true; // 로드 성공
                 }
             } catch (error) {
                 console.error("URL에서 퀴즈 로드 실패:", error);
+                isLoadedFromUrl = false; // (수정) 실패 시 플래그 리셋
                 jsonError.textContent = "URL에서 퀴즈를 불러오는 데 실패했습니다. 링크가 올바른지 확인하세요.";
                 jsonError.classList.remove('hidden');
             }
             return false; // 로드 실패 또는 해시 없음
         }
 
-        /** (수정) 14. 공유 링크 생성 (해시 사용) */
+        /** 14. 공유 링크 생성 (해시 사용) */
         function generateShareLink() {
             try {
                 const jsonData = jsonInput.value;
 
                 // btoa 오류를 해결하기 위해 UTF-8 인코딩 파이프라인 적용
-                // 1. 유니코드 문자열 -> UTF-8 바이트 배열
                 const utf8Bytes = new TextEncoder().encode(jsonData);
-                
-                // 2. 바이트 배열 -> btoa가 처리할 수 있는 바이너리 문자열
                 const binaryString = String.fromCodePoint(...utf8Bytes);
-                
-                // 3. Base64 인코딩 및 URL-safe 문자 처리
                 const base64Data = btoa(binaryString).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
                 
-                // (수정) ?q= 대신 #q= 를 사용
+                // ?q= 대신 #q= 를 사용
                 const shareUrl = `${window.location.origin}${window.location.pathname}#q=${base64Data}`;
 
                 // 임시 텍스트 영역을 만들어 복사
@@ -919,6 +924,11 @@
             if (!loadedFromUrl) {
                 jsonInput.value = DEFAULT_QUIZ_JSON;
             }
+
+            // (수정) URL에서 성공적으로 로드한 경우,
+            // 퀴즈 시작(startQuiz)을 *하지 않고*
+            // loadJsonData()가 '퀴즈 시작/인쇄' 화면을 보여주도록 함.
+            // (이전의 if (loadedFromUrl && quizData.length > 0) { startQuiz(); } 블록 삭제)
             
             loadJsonBtn.addEventListener('click', loadJsonData);
             
