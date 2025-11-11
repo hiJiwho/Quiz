@@ -1,6 +1,6 @@
 # JSON SVG 퀴즈 생성기 - 프로젝트 가이드
 
-## 1. 프로젝트 개요
+## 1\. 프로젝트 개요
 
 이 프로젝트는 JSON(제이슨) 형식의 데이터를 기반으로 인터랙티브 퀴즈를 생성하고, 풀고, 공유하며, 인쇄할 수 있는 웹 애플리케이션입니다.
 
@@ -8,19 +8,28 @@
 
 **주요 기능:**
 
-* **JSON 기반 퀴즈 생성:** 텍스트 편집기에서 퀴즈 데이터를 유연하게 관리합니다.
-* **인터랙티브 퀴즈 풀이:** 한 문제씩 퀴즈를 풀고 즉시 피드백(정답, 오답, 해설)을 받습니다.
-* **SVG 지원:** 문제와 5지선다 보기에 SVG 그래픽을 포함할 수 있습니다.
-* **A4 인쇄 최적화:** '문제지'와 '정답/해설지'를 2열 10pt 폰트로 깔끔하게 인쇄할 수 있습니다.
-* **공유 링크 생성:** 생성된 퀴즈를 URL 해시(Hash) 스트링에 담아 다른 사람에게 링크로 공유할 수 있습니다.
+  * **JSON 기반 퀴즈 생성:** 텍스트 편집기에서 퀴즈 데이터를 유연하게 관리합니다.
+  * **인터랙티브 퀴즈 풀이:** 2분할 화면(문제/보기)으로 퀴즈를 풀고 즉시 피드백을 받습니다.
+  * **SVG 지원:** 문제와 5지선다 보기에 SVG 그래픽을 포함할 수 있습니다.
+  * **타이머 기능:** 퀴즈 전체에 대한 **총 시간 제한**을 설정할 수 있습니다.
+  * **A4 인쇄 최적화:** '문제지'와 '정답/해설지'를 2열 10pt 폰트로 깔끔하게 인쇄할 수 있습니다.
+  * **공유 링크 생성:** 생성된 퀴즈를 URL 해시(Hash) 스트링에 담아 다른 사람에게 링크로 공유할 수 있습니다.
 
----
+-----
 
-## 2. 연동 가이드: JSON 데이터 구조
+## 2\. 연동 가이드: JSON 데이터 구조
 
-퀴즈를 생성하려면 정해진 JSON 형식을 따라야 합니다. JSON 데이터는 1개의 **배열(`[]`)**이며, 각 **객체(`{}`)**가 1개의 문제를 의미합니다.
+퀴즈를 생성하려면 정해진 JSON 형식을 따라야 합니다. JSON 데이터는 1개의 \*\*객체(`{}`)\*\*입니다.
 
-### 문제 객체 (`{}`)의 속성
+### 최상위 객체 (`{}`)의 속성
+
+| 속성 | 타입 | 필수 여부 | 설명 |
+| :--- | :--- | :--- | :--- |
+| `title` | String | 선택 | 퀴즈의 제목입니다. (예: "기말고사 대비 퀴즈") |
+| `totalTimeLimitSeconds` | Number | 선택 | 퀴즈 **전체**의 제한 시간(초)입니다. (예: 600 = 10분) |
+| `questions` | Array | **필수** | 실제 문제들을 담는 배열입니다. (아래 '문제 객체' 참고) |
+
+### `questions` 배열의 문제 객체 (`{}`) 속성
 
 | 속성 | 타입 | 필수 여부 | 설명 |
 | :--- | :--- | :--- | :--- |
@@ -41,47 +50,51 @@
 
 <br>
 
-### JSON 데이터 예제 (3문제)
+### JSON 데이터 예제 (3문제, 총 시간 60초)
 
 ```json
-[
-    {
-        "question": "다음 중 HTML(HyperText Markup Language)의 약자가 올바른 것은?",
-        "options": [
-            { "text": "Hyperlinks and Text Markup Language" },
-            { "text": "Home Tool Markup Language" },
-            { "text": "HyperText Markup Language" },
-            { "text": "Hyper Tool Multi Language" },
-            { "text": "HighText Machine Language" }
-        ],
-        "answerIndex": 2,
-        "explanation": "HTML은 'HyperText Markup Language'의 약자입니다. 웹 페이지의 구조를 정의하는 마크업 언어입니다."
-    },
-    {
-        "question": "웹 페이지의 스타일(색상, 글꼴, 레이아웃)을 지정하는 언어는 무엇인가요?",
-        "options": [
-            { "text": "HTML" },
-            { "text": "JQuery" },
-            { "text": "Python" },
-            { "text": "JavaScript" },
-            { "text": "CSS" }
-        ],
-        "answerIndex": 4
-    },
-    {
-        "question": "다음 보기 중 '둥근 사각형(Rounded Rectangle)'을 나타내는 SVG는 무엇인가요?",
-        "svgImage": "<svg viewBox='0 0 100 60' xmlns='[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)'><rect x='10' y='10' width='80' height='40' rx='10' stroke='blue' stroke-width='3' fill='lightblue'/></svg>",
-        "options": [
-            { "text": "원", "svgImage": "<svg viewBox='0 0 40 40' xmlns='[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)'><circle cx='20' cy='20' r='18' stroke='black' stroke-width='2' fill='none'/></svg>" },
-            { "text": "일반 사각형", "svgImage": "<svg viewBox='0 0 40 40' xmlns='[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)'><rect x='5' y='5' width='30' height='30' stroke='black' stroke-width='2' fill='none'/></svg>" },
-            { "text": "삼각형", "svgImage": "<svg viewBox='0 0 40 40' xmlns='[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)'><polygon points='20,5 35,35 5,35' stroke='black' stroke-width='2' fill='none'/></svg>" },
-            { "text": "둥근 사각형", "svgImage": "<svg viewBox='0 0 40 40' xmlns='[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)'><rect x='5' y='5' width='30' height='30' rx='8' stroke='black' stroke-width='2' fill='none'/></svg>" },
-            { "text": "타원", "svgImage": "<svg viewBox='0 0 40 40' xmlns='[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)'><ellipse cx='20' cy='20' rx='18' ry='12' stroke='black' stroke-width='2' fill='none'/></svg>" }
-        ],
-        "answerIndex": 3,
-        "explanation": "정답은 4번째 보기입니다. <rect> 태그의 'rx' 속성은 모서리의 둥근 정도를 지정합니다."
-    }
-]
+{
+    "title": "기본 상식 퀴즈 (60초)",
+    "totalTimeLimitSeconds": 60,
+    "questions": [
+        {
+            "question": "다음 중 HTML(HyperText Markup Language)의 약자가 올바른 것은?",
+            "options": [
+                { "text": "Hyperlinks and Text Markup Language" },
+                { "text": "Home Tool Markup Language" },
+                { "text": "HyperText Markup Language" },
+                { "text": "Hyper Tool Multi Language" },
+                { "text": "HighText Machine Language" }
+            ],
+            "answerIndex": 2,
+            "explanation": "HTML은 'HyperText Markup Language'의 약자입니다. 웹 페이지의 구조를 정의하는 마크업 언어입니다."
+        },
+        {
+            "question": "웹 페이지의 스타일(색상, 글꼴, 레이아웃)을 지정하는 언어는 무엇인가요?",
+            "options": [
+                { "text": "HTML" },
+                { "text": "JQuery" },
+                { "text": "Python" },
+                { "text": "JavaScript" },
+                { "text": "CSS" }
+            ],
+            "answerIndex": 4
+        },
+        {
+            "question": "다음 보기 중 '둥근 사각형(Rounded Rectangle)'을 나타내는 SVG는 무엇인가요?",
+            "svgImage": "<svg viewBox='0 0 100 60' xmlns='[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)'><rect x='10' y='10' width='80' height='40' rx='10' stroke='blue' stroke-width='3' fill='lightblue'/></svg>",
+            "options": [
+                { "text": "원", "svgImage": "<svg viewBox='0 0 40 40' xmlns='[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)'><circle cx='20' cy='20' r='18' stroke='black' stroke-width='2' fill='none'/></svg>" },
+                { "text": "일반 사각형", "svgImage": "<svg viewBox='0 0 40 40' xmlns='[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)'><rect x='5' y='5' width='30' height='30' stroke='black' stroke-width='2' fill='none'/></svg>" },
+                { "text": "삼각형", "svgImage": "<svg viewBox='0 0 40 40' xmlns='[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)'><polygon points='20,5 35,35 5,35' stroke='black' stroke-width='2' fill='none'/></svg>" },
+                { "text": "둥근 사각형", "svgImage": "<svg viewBox='0 0 40 40' xmlns='[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)'><rect x='5' y='5' width='30' height='30' rx='8' stroke='black' stroke-width='2' fill='none'/></svg>" },
+                { "text": "타원", "svgImage": "<svg viewBox='0 0 40 40' xmlns='[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)'><ellipse cx='20' cy='20' rx='18' ry='12' stroke='black' stroke-width='2' fill='none'/></svg>" }
+            ],
+            "answerIndex": 3,
+            "explanation": "정답은 4번째 보기입니다. <rect> 태그의 'rx' 속성은 모서리의 둥근 정도를 지정합니다."
+        }
+    ]
+}
 ````
 
 -----
@@ -107,7 +120,7 @@
 
 ```javascript
 // 1. 위에서 만든 퀴즈 JSON 데이터를 문자열(String)로 준비합니다.
-const jsonData = `[{"question": "문제1", "options": [{"text":"보기1"}], "answerIndex": 0}]`;
+const jsonData = `{"title":"테스트","questions":[{"question": "문제1", "options": [{"text":"보기1"}], "answerIndex": 0}]}`;
 
 // 2. JSON 문자열을 UTF-8 바이트 배열로 인코딩합니다.
 const utf8Bytes = new TextEncoder().encode(jsonData);
