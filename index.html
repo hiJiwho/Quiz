@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JSON 퀴즈 생성기 (풀기 및 인쇄)</title>
-    <!-- Tailwind CSS 로드 -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind CSS 로드 --><script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* 기본 글꼴 설정 */
         body {
@@ -34,7 +33,7 @@
              */
             @page {
                 size: A4;
-                margin: 1.2cm; 
+                margin: 1.2cm;
             }
 
             /* * 4. 인쇄용 폰트 및 페이지 나눔 설정
@@ -113,6 +112,14 @@
                 padding-left: 8px;
             }
             
+            .print-quiz-title { /* (신규) 퀴즈 제목 */
+                text-align: center;
+                font-size: 1.6em;
+                font-weight: bold;
+                margin-bottom: 0.8cm;
+                margin-top: 0.2cm;
+            }
+
             .print-answer-key-title {
                 text-align: center;
                 font-size: 1.4em;
@@ -165,6 +172,43 @@
         .svg-option:hover > rect {
             fill: #e5e7eb; /* bg-gray-200 */
         }
+
+        /* (신규) 퀴즈 레이아웃 - 문제/SVG 영역 + 보기 영역 */
+        #quiz-content-area {
+            display: flex;
+            gap: 24px; /* gap-6 */
+            min-height: 400px; /* 최소 높이 설정 */
+        }
+        #quiz-question-area { /* 왼쪽: 문제, SVG */
+            flex: 1 1 50%; /* (수정) 기본 50% 너비 */
+            padding-right: 16px; /* pr-4 */
+            border-right: 1px solid #e5e7eb; /* border-r border-gray-200 */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+        #quiz-options-area { /* 오른쪽: 보기 */
+            flex: 1 1 50%; /* (수정) 기본 50% 너비 */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        /* (신규) 타이머 바 스타일 */
+        #timer-bar-container {
+            width: 100%;
+            background-color: #e0e7ff; /* bg-indigo-100 */
+            border-radius: 4px; /* rounded */
+            height: 8px; /* h-2 */
+            margin-top: 16px; /* mt-4 */
+            overflow: hidden;
+        }
+        #timer-bar {
+            height: 100%;
+            background-color: #6366f1; /* bg-indigo-500 */
+            width: 100%;
+            transition: width 1s linear; /* 부드러운 애니메이션 (1초마다) */
+        }
     </style>
 </head>
 <body class="bg-gray-100 p-4 md:p-10">
@@ -172,12 +216,11 @@
     <!-- 
       ======================================
       앱 메인 컨테이너
+      (수정) max-w-4xl -> max-w-5xl
       ======================================
-    -->
-    <div id="app-container" class="max-w-3xl mx-auto bg-white shadow-2xl rounded-xl overflow-hidden">
+    --><div id="app-container" class="max-w-5xl mx-auto bg-white shadow-2xl rounded-xl overflow-hidden">
         
-        <!-- 1. JSON 입력 섹션 -->
-        <div id="json-input-section" class="p-6 md:p-8">
+        <!-- 1. JSON 입력 섹션 --><div id="json-input-section" class="p-6 md:p-8">
             <h1 class="text-2xl font-bold text-gray-800 mb-4">JSON 퀴즈 생성기</h1>
             <p class="text-gray-600 mb-5">
                 아래 텍스트 영역에 퀴즈 문제를 JSON 형식으로 붙여넣으세요.
@@ -185,11 +228,9 @@
                 예제 JSON을 참고하여 형식을 맞추거나, 직접 수정하여 사용할 수 있습니다.
             </p>
 
-            <!-- JSON 입력창 -->
-            <textarea id="json-input" rows="15" class="w-full p-4 border border-gray-300 rounded-lg font-mono text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+            <!-- JSON 입력창 --><textarea id="json-input" rows="15" class="w-full p-4 border border-gray-300 rounded-lg font-mono text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
             
-            <!-- 오류 메시지 -->
-            <p id="json-error" class="text-red-600 font-semibold mt-2 hidden"></p>
+            <!-- 오류 메시지 --><p id="json-error" class="text-red-600 font-semibold mt-2 hidden"></p>
 
             <div class="flex flex-col gap-3 mt-4">
                 <button id="load-json-btn" class="w-full bg-blue-600 text-white px-5 py-3 rounded-lg font-bold hover:bg-blue-700 transition duration-200">
@@ -209,11 +250,10 @@
             </div>
         </div>
         
-        <!-- 2. 액션 컨트롤 섹션 (JSON 로드 후 보임) -->
-        <div id="action-controls" class="p-6 md:p-8 border-t border-gray-200 hidden">
-            <div id="load-status" class="hidden mb-4 p-4 bg-green-100 text-green-800 rounded-lg">
+        <!-- 2. 액션 컨트롤 섹션 (JSON 로드 후 보임) --><div id="action-controls" class="p-6 md:p-8 border-t border-gray-200 hidden">
+            <h2 id="quiz-title-display" class="text-2xl font-bold text-gray-800 mb-4 text-center"></h2> <!-- (신규) 퀴즈 제목 표시 --><div id="load-status" class="hidden mb-4 p-4 bg-green-100 text-green-800 rounded-lg">
                 <span id="question-count" class="font-bold">0</span>개의 문제를 성공적으로 불러왔습니다.
-            </div>
+                <span id="timer-setting-display" class="block text-sm text-green-700 mt-1 hidden"></span> <!-- (수정) 타이머 설정 표시 --></div>
             <div class="grid grid-cols-1 gap-4">
                 <button id="start-quiz-btn" class="w-full bg-green-600 text-white p-4 rounded-lg font-bold text-lg hover:bg-green-700 transition">
                     2. 퀴즈 풀기 시작!
@@ -228,8 +268,7 @@
                 </div>
             </div>
             
-             <!-- (수정) JSON 수정하기 / 공유하기 버튼 그룹 -->
-             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+             <!-- (수정) JSON 수정하기 / 공유하기 버튼 그룹 --><div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <button id="back-to-json-btn" class="w-full bg-gray-200 text-gray-700 p-3 rounded-lg hover:bg-gray-300 transition">
                     JSON 수정하기
                 </button>
@@ -239,30 +278,36 @@
              </div>
         </div>
 
-        <!-- 3. 퀴즈 풀기 섹션 (퀴즈 시작 후 보임) -->
-        <div id="quiz-section" class="p-6 md:p-8 hidden">
-            <!-- 퀴즈 상단 바 -->
-            <div class="flex justify-between items-center mb-6">
-                <span id="progress-text" class="text-lg font-semibold text-gray-700">문제 1 / 10</span>
+        <!-- 3. 퀴즈 풀기 섹션 (퀴즈 시작 후 보임) --><div id="quiz-section" class="p-6 md:p-8 hidden">
+            <!-- 퀴즈 상단 바 --><div class="flex justify-between items-center mb-6">
+                <span id="quiz-run-title" class="text-lg font-bold text-gray-800 hidden"></span> <!-- (신규) 퀴즈 풀기 화면 제목 --><span id="progress-text" class="text-lg font-semibold text-gray-700">문제 1 / 10</span>
                 <button id="quit-quiz-btn" class="text-sm text-red-600 hover:text-red-800 font-medium">
                     처음으로
                 </button>
             </div>
-
-            <!-- 문제 -->
-            <h2 id="question-title" class="text-2xl font-bold text-gray-900 mb-4"></h2>
             
-            <div id="question-svg-container" class="my-5 flex justify-center hidden">
-                <!-- JS가 이곳에 SVG를 삽입 -->
+            <!-- (수정) 타이머 표시 영역 --><div id="timer-container" class="flex justify-between items-center mb-4 hidden">
+                <span id="time-left-text" class="text-lg font-bold text-indigo-700">--:--</span> <!-- (수정) '남은 시간:' 텍스트 삭제 -->
+                <div id="timer-bar-container">
+                    <div id="timer-bar"></div>
+                </div>
             </div>
 
-            <!-- 보기 목록 -->
-            <ul id="options-list" class="space-y-3">
-                <!-- JS가 이곳에 SVG 보기 버튼을 삽입 -->
-            </ul>
 
-            <!-- 피드백 및 다음 버튼 -->
-            <div class="mt-6">
+            <!-- (신규) 퀴즈 내용 영역 - 왼쪽 (문제, SVG) / 오른쪽 (보기) --><div id="quiz-content-area" class="md:flex">
+                <!-- 왼쪽: 문제 및 SVG 참고자료 --><div id="quiz-question-area" class="mb-6 md:mb-0">
+                    <h2 id="question-title" class="text-2xl font-bold text-gray-900 mb-4"></h2>
+                    <div id="question-svg-container" class="my-5 flex justify-center hidden">
+                        <!-- JS가 이곳에 SVG를 삽입 --></div>
+                </div>
+                
+                <!-- 오른쪽: 보기 목록 --><div id="quiz-options-area">
+                    <ul id="options-list" class="space-y-3">
+                        <!-- JS가 이곳에 SVG 보기 버튼을 삽입 --></ul>
+                </div>
+            </div>
+
+            <!-- 피드백 및 다음 버튼 --><div class="mt-6 border-t border-gray-200 pt-6">
                 <p id="feedback-text" class="text-xl font-bold"></p>
                 <p id="explanation-text" class="mt-3 text-gray-700 bg-gray-100 p-4 rounded-md hidden"></p>
                 <button id="next-question-btn" class="w-full bg-blue-600 text-white p-4 rounded-lg font-bold text-lg hover:bg-blue-700 transition mt-4 hidden">
@@ -271,10 +316,8 @@
             </div>
         </div>
 
-        <!-- 4. 최종 결과 섹션 (퀴즈 종료 후 보임) -->
-        <div id="results-section" class="p-6 md:p-10 text-center hidden">
-            <h2 class="text-3xl font-bold text-gray-800 mb-4">퀴즈 완료!</h2>
-            <p class="text-xl text-gray-600 mb-6">수고하셨습니다.</p>
+        <!-- 4. 최종 결과 섹션 (퀴즈 종료 후 보임) --><div id="results-section" class="p-6 md:p-10 text-center hidden">
+            <h2 id="results-title" class="text-3xl font-bold text-gray-800 mb-4">퀴즈 완료!</h2> <!-- (수정) 퀴즈 결과 제목 --><p class="text-xl text-gray-600 mb-6">수고하셨습니다.</p>
             
             <div class="bg-blue-50 p-8 rounded-xl">
                 <p class="text-lg text-blue-800">총 문제</p>
@@ -295,71 +338,90 @@
       ======================================
       인쇄 전용 HTML 영역 (평소에는 안 보임)
       ======================================
-    -->
-    <div id="printable-area" class="hidden">
+    --><div id="printable-area" class="hidden">
         <!-- 
           JS가 이곳에 인쇄용 컨텐츠를 생성합니다
           (1부: 문제지, 2부: 정답지)
-        -->
-    </div>
+        --></div>
 
 
     <!-- 
       ======================================
       자바스크립트 로직
       ======================================
-    -->
-    <script>
+    --><script>
         // --- 예제 JSON 데이터 (문자열 형태) ---
+        // (수정) totalTimeLimitSeconds (총 시간)으로 변경
         const DEFAULT_QUIZ_JSON = `
-[
-    {
-        "question": "다음 중 HTML(HyperText Markup Language)의 약자가 올바른 것은?",
-        "options": [
-            { "text": "Hyperlinks and Text Markup Language" },
-            { "text": "Home Tool Markup Language" },
-            { "text": "HyperText Markup Language" },
-            { "text": "Hyper Tool Multi Language" },
-            { "text": "HighText Machine Language" }
-        ],
-        "answerIndex": 2,
-        "explanation": "HTML은 'HyperText Markup Language'의 약자입니다. 웹 페이지의 구조를 정의하는 마크업 언어입니다."
-    },
-    {
-        "question": "웹 페이지의 스타일(색상, 글꼴, 레이아웃)을 지정하는 언어는 무엇인가요?",
-        "options": [
-            { "text": "HTML" },
-            { "text": "JQuery" },
-            { "text": "Python" },
-            { "text": "JavaScript" },
-            { "text": "CSS" }
-        ],
-        "answerIndex": 4
-    },
-    {
-        "question": "다음 보기 중 '둥근 사각형(Rounded Rectangle)'을 나타내는 SVG는 무엇인가요?",
-        "svgImage": "<svg viewBox='0 0 100 60' xmlns='http://www.w3.org/2000/svg' class='w-full max-w-xs border rounded-md'><rect x='10' y='10' width='80' height='40' rx='10' stroke='blue' stroke-width='3' fill='lightblue'/><text x='50' y='35' text-anchor='middle' font-size='10' fill='black'>질문 SVG</text></svg>",
-        "options": [
-            { "text": "원", "svgImage": "<svg viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'><circle cx='20' cy='20' r='18' stroke='black' stroke-width='2' fill='none'/></svg>" },
-            { "text": "일반 사각형", "svgImage": "<svg viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'><rect x='5' y='5' width='30' height='30' stroke='black' stroke-width='2' fill='none'/></svg>" },
-            { "text": "삼각형", "svgImage": "<svg viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'><polygon points='20,5 35,35 5,35' stroke='black' stroke-width='2' fill='none'/></svg>" },
-            { "text": "둥근 사각형", "svgImage": "<svg viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'><rect x='5' y='5' width='30' height='30' rx='8' stroke='black' stroke-width='2' fill='none'/></svg>" },
-            { "text": "타원", "svgImage": "<svg viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'><ellipse cx='20' cy='20' rx='18' ry='12' stroke='black' stroke-width='2' fill='none'/></svg>" }
-        ],
-        "answerIndex": 3,
-        "explanation": "정답은 4번째 보기입니다. <rect> 태그의 'rx' 속성은 모서리의 둥근 정도를 지정합니다."
-    }
-]
+{
+    "title": "기본 상식 퀴즈",
+    "totalTimeLimitSeconds": 60,
+    "questions": [
+        {
+            "question": "다음 중 HTML(HyperText Markup Language)의 약자가 올바른 것은?",
+            "options": [
+                { "text": "Hyperlinks and Text Markup Language" },
+                { "text": "Home Tool Markup Language" },
+                { "text": "HyperText Markup Language" },
+                { "text": "Hyper Tool Multi Language" },
+                { "text": "HighText Machine Language" }
+            ],
+            "answerIndex": 2,
+            "explanation": "HTML은 'HyperText Markup Language'의 약자입니다. 웹 페이지의 구조를 정의하는 마크업 언어입니다."
+        },
+        {
+            "question": "웹 페이지의 스타일(색상, 글꼴, 레이아웃)을 지정하는 언어는 무엇인가요?",
+            "options": [
+                { "text": "HTML" },
+                { "text": "JQuery" },
+                { "text": "Python" },
+                { "text": "JavaScript" },
+                { "text": "CSS" }
+            ],
+            "answerIndex": 4,
+            "explanation": "CSS(Cascading Style Sheets)는 웹 페이지의 디자인을 담당합니다."
+        },
+        {
+            "question": "다음 보기 중 '둥근 사각형(Rounded Rectangle)'을 나타내는 SVG는 무엇인가요?",
+            "svgImage": "<svg viewBox='0 0 100 60' xmlns='http://www.w3.org/2000/svg' class='w-full max-w-xs border rounded-md'><rect x='10' y='10' width='80' height='40' rx='10' stroke='blue' stroke-width='3' fill='lightblue'/><text x='50' y='35' text-anchor='middle' font-size='10' fill='black'>질문 SVG</text></svg>",
+            "options": [
+                { "text": "원", "svgImage": "<svg viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'><circle cx='20' cy='20' r='18' stroke='black' stroke-width='2' fill='none'/></svg>" },
+                { "text": "일반 사각형", "svgImage": "<svg viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'><rect x='5' y='5' width='30' height='30' stroke='black' stroke-width='2' fill='none'/></svg>" },
+                { "text": "삼각형", "svgImage": "<svg viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'><polygon points='20,5 35,35 5,35' stroke='black' stroke-width='2' fill='none'/></svg>" },
+                { "text": "둥근 사각형", "svgImage": "<svg viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'><rect x='5' y='5' width='30' height='30' rx='8' stroke='black' stroke-width='2' fill='none'/></svg>" },
+                { "text": "타원", "svgImage": "<svg viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'><ellipse cx='20' cy='20' rx='18' ry='12' stroke='black' stroke-width='2' fill='none'/></svg>" }
+            ],
+            "answerIndex": 3,
+            "explanation": "정답은 4번째 보기입니다. <rect> 태그의 'rx' 속성은 모서리의 둥근 정도를 지정합니다."
+        },
+        {
+            "question": "다음 SVG 코드에 대한 설명으로 옳은 것은?",
+            "svgImage": "<svg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'><circle cx='50' cy='50' r='40' fill='red'/></svg>",
+            "options": [
+                { "text": "파란색 사각형을 그린다." },
+                { "text": "중심이 (50,50)인 반지름 40의 빨간색 원을 그린다." },
+                { "text": "타원을 그린다." },
+                { "text": "텍스트를 표시한다." },
+                { "text": "선을 그린다." }
+            ],
+            "answerIndex": 1,
+            "explanation": "<circle> 태그는 원을, cx/cy는 중심 좌표, r은 반지름, fill은 색상을 나타냅니다."
+        }
+    ]
+}
 `;
 
         // --- 전역 변수 및 상태 ---
-        let quizData = []; // 불러온 퀴즈 데이터(객체 배열)
+        let currentQuiz = {}; 
         let currentQuestionIndex = 0;
         let score = 0;
-        let isAnswered = false; // 현재 문제에 답했는지 여부
-        let isLoadedFromUrl = false; // (신규) URL 해시로 로드되었는지 여부
+        let isAnswered = false; 
+        let isLoadedFromUrl = false; 
+        let timerInterval; // (수정) 퀴즈 전체의 타이머
+        let timeLeft; // (수정) 퀴즈 전체의 남은 시간
 
         // --- DOM 요소 가져오기 ---
+        const jsonInputSection = document.getElementById('json-input-section'); 
         const jsonInput = document.getElementById('json-input');
         const jsonError = document.getElementById('json-error');
         const loadJsonBtn = document.getElementById('load-json-btn');
@@ -368,8 +430,10 @@
         const clearJsonBtn = document.getElementById('clear-json-btn'); 
         
         const actionControls = document.getElementById('action-controls');
+        const quizTitleDisplay = document.getElementById('quiz-title-display'); 
         const loadStatus = document.getElementById('load-status');
         const questionCount = document.getElementById('question-count');
+        const timerSettingDisplay = document.getElementById('timer-setting-display'); // (수정) 타이머 설정 표시
         
         const startQuizBtn = document.getElementById('start-quiz-btn');
         const printQuestionsBtn = document.getElementById('print-questions-btn');
@@ -378,8 +442,13 @@
         const shareLinkBtn = document.getElementById('share-link-btn'); 
         
         const quizSection = document.getElementById('quiz-section');
+        const quizRunTitle = document.getElementById('quiz-run-title'); 
         const quitQuizBtn = document.getElementById('quit-quiz-btn');
         const progressText = document.getElementById('progress-text');
+        const timerContainer = document.getElementById('timer-container'); 
+        const timeLeftText = document.getElementById('time-left-text'); 
+        const timerBar = document.getElementById('timer-bar'); 
+        
         const questionTitle = document.getElementById('question-title');
         const svgContainer = document.getElementById('question-svg-container');
         const optionsList = document.getElementById('options-list');
@@ -388,6 +457,7 @@
         const nextQuestionBtn = document.getElementById('next-question-btn');
 
         const resultsSection = document.getElementById('results-section');
+        const resultsTitle = document.getElementById('results-title'); 
         const totalQuestionsResult = document.getElementById('total-questions-result');
         const finalScore = document.getElementById('final-score');
         const restartQuizBtn = document.getElementById('restart-quiz-btn');
@@ -399,17 +469,36 @@
         /** 1. JSON 불러오기 및 유효성 검사 */
         function loadJsonData() {
             try {
-                const jsonData = JSON.parse(jsonInput.value);
+                const rawJson = jsonInput.value;
+                const parsedData = JSON.parse(rawJson); 
+
                 
-                // 간단한 유효성 검사
-                if (!Array.isArray(jsonData) || jsonData.length === 0) {
-                    throw new Error("데이터는 비어있지 않은 배열(Array)이어야 합니다.");
+                if (typeof parsedData !== 'object' || parsedData === null || !Array.isArray(parsedData.questions)) {
+                    throw new Error("JSON 데이터는 최상위 객체여야 하며, 'questions' 배열을 포함해야 합니다.");
+                }
+
+                if (parsedData.questions.length === 0) {
+                    throw new Error("'questions' 배열은 비어있지 않아야 합니다.");
                 }
                 
-                // 각 문제의 형식 검사
-                for (const item of jsonData) {
+                
+                if (parsedData.title && typeof parsedData.title !== 'string') {
+                    throw new Error("JSON의 'title' 속성은 문자열(string)이어야 합니다.");
+                }
+
+                // (수정) timeLimitPerQuestion -> totalTimeLimitSeconds 유효성 검사
+                if (parsedData.totalTimeLimitSeconds && typeof parsedData.totalTimeLimitSeconds !== 'number') {
+                    throw new Error("JSON의 'totalTimeLimitSeconds' 속성은 숫자(number)여야 합니다.");
+                }
+                if (parsedData.totalTimeLimitSeconds && parsedData.totalTimeLimitSeconds <= 0) {
+                    throw new Error("JSON의 'totalTimeLimitSeconds'은 0보다 큰 숫자여야 합니다.");
+                }
+
+
+                // 각 문제의 형식 검사 (parsedData.questions 배열 순회)
+                for (const item of parsedData.questions) {
                     if (!item.question || !Array.isArray(item.options) || item.options.length === 0 || typeof item.answerIndex !== 'number') {
-                        throw new Error("JSON 형식이 올바르지 않습니다. 'question', 'options' 배열, 'answerIndex' 숫자가 필요합니다.");
+                        throw new Error("JSON 형식이 올바르지 않습니다. 각 문제는 'question', 'options' 배열, 'answerIndex' 숫자가 필요합니다.");
                     }
                     
                     for (const opt of item.options) {
@@ -429,15 +518,33 @@
                 }
 
                 // 성공
-                quizData = jsonData;
+                currentQuiz = parsedData; 
                 jsonError.classList.add('hidden');
                 
                 // 컨트롤 버튼 표시
-                questionCount.textContent = quizData.length;
+                questionCount.textContent = currentQuiz.questions.length; 
                 loadStatus.classList.remove('hidden'); 
+                
+                
+                quizTitleDisplay.textContent = currentQuiz.title || "제목 없는 퀴즈";
+                // (수정) 결과 제목은 showResults에서 설정하도록 기본값만 설정
+                resultsTitle.textContent = currentQuiz.title ? `${currentQuiz.title} 퀴즈 완료!` : "퀴즈 완료!";
+                quizRunTitle.textContent = currentQuiz.title || "퀴즈 풀기";
+                quizRunTitle.classList.remove('hidden');
+
+                // (수정) 타이머 설정 표시 (MM:SS 형식)
+                if (currentQuiz.totalTimeLimitSeconds) {
+                    const minutes = Math.floor(currentQuiz.totalTimeLimitSeconds / 60);
+                    const seconds = currentQuiz.totalTimeLimitSeconds % 60;
+                    timerSettingDisplay.textContent = `(총 제한 시간: ${minutes}:${seconds.toString().padStart(2, '0')})`;
+                    timerSettingDisplay.classList.remove('hidden');
+                } else {
+                    timerSettingDisplay.classList.add('hidden');
+                }
+
                 actionControls.classList.remove('hidden'); 
                 
-                // (수정) URL로 로드된 경우, 수정/공유 버튼 숨기기
+                
                 if (isLoadedFromUrl) {
                     backToJsonBtn.classList.add('hidden');
                     shareLinkBtn.classList.add('hidden');
@@ -449,19 +556,29 @@
                 // 다른 섹션 숨기기
                 quizSection.classList.add('hidden');
                 resultsSection.classList.add('hidden');
-                document.getElementById('json-input-section').classList.add('hidden');
+                jsonInputSection.classList.add('hidden'); 
 
             } catch (error) {
                 // 실패
-                quizData = [];
-                isLoadedFromUrl = false; // (수정) 실패 시 플래그 리셋
+                currentQuiz = {}; 
+                isLoadedFromUrl = false; 
                 jsonError.textContent = `JSON 오류: ${error.message}`;
                 jsonError.classList.remove('hidden');
                 actionControls.classList.add('hidden'); 
+                jsonInputSection.classList.remove('hidden'); 
             }
         }
 
-        /** 2. 퀴즈 시작 */
+        /** (수정) 타이머 표시 헬퍼 함수 (MM:SS 형식) */
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timeLeftText.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            // timeLeftText.textContent = `남은 시간: ${timeLeft}초`;
+        }
+
+
+        /** 2. 퀴즈 시작 (수정: 전역 타이머 시작) */
         function startQuiz() {
             currentQuestionIndex = 0;
             score = 0;
@@ -470,10 +587,39 @@
             resultsSection.classList.add('hidden');
             quizSection.classList.remove('hidden');
             
+            // (수정) 퀴즈 전체 타이머 시작
+            clearInterval(timerInterval); // 이전 타이머 초기화
+            if (currentQuiz.totalTimeLimitSeconds) {
+                timeLeft = currentQuiz.totalTimeLimitSeconds;
+                timerContainer.classList.remove('hidden');
+                updateTimerDisplay();
+                
+                timerBar.style.transition = 'none'; // 애니메이션 초기화
+                timerBar.style.width = '100%';
+                
+                // 부드러운 애니메이션 시작
+                setTimeout(() => {
+                    timerBar.style.transition = `width ${timeLeft}s linear`;
+                    timerBar.style.width = '0%';
+                }, 100);
+
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    updateTimerDisplay();
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        showResults(true); // (수정) 시간 초과로 결과 표시
+                    }
+                }, 1000);
+            } else {
+                timerContainer.classList.add('hidden');
+            }
+            
             loadQuestion();
         }
 
-        /** 3. 문제 불러오기 (퀴즈 화면 렌더링) */
+        /** 3. 문제 불러오기 (수정: 타이머 리셋 로직 제거) */
         function loadQuestion() {
             // 초기화
             isAnswered = false;
@@ -482,9 +628,12 @@
             explanationText.classList.add('hidden');
             nextQuestionBtn.classList.add('hidden');
             
-            const currentQuestion = quizData[currentQuestionIndex];
+            // (수정) 문제당 타이머 리셋 로직 전체 삭제
+            // (타이머는 startQuiz에서 전역으로 관리됨)
+
+            const currentQuestion = currentQuiz.questions[currentQuestionIndex]; 
             
-            progressText.textContent = `문제 ${currentQuestionIndex + 1} / ${quizData.length}`;
+            progressText.textContent = `문제 ${currentQuestionIndex + 1} / ${currentQuiz.questions.length}`;
             questionTitle.textContent = currentQuestion.question;
             
             if (currentQuestion.svgImage) {
@@ -560,57 +709,56 @@
             });
         }
 
-        /** 4. 답안 선택 (SVG 버전) */
+        /** 4. 답안 선택 (수정: 타이머 중지 로직 제거) */
         function selectAnswer(selectedSvg, selectedIndex) {
             if (isAnswered) return;
             
+            // (수정) 답을 선택해도 타이머는 멈추지 않음.
+            // clearInterval(timerInterval); 
+            // timerBar.style.width = timerBar.style.width; 
+            // timerBar.style.transition = 'none';
+
             isAnswered = true;
-            const currentQuestion = quizData[currentQuestionIndex];
+            const currentQuestion = currentQuiz.questions[currentQuestionIndex]; 
             const correctIndex = currentQuestion.answerIndex;
 
             const allOptionSvgs = optionsList.querySelectorAll('.svg-option');
-            const selectedRect = selectedSvg.querySelector('rect');
-
-            if (!selectedRect) {
-                console.error("오류: 선택한 SVG에서 'rect' 요소를 찾을 수 없습니다.", selectedSvg);
-                return;
-            }
-
+            
+            // (수정) 시간 초과 로직(selectedIndex === -1) 제거. 전역 타이머가 처리함.
             if (selectedIndex === correctIndex) {
                 // 정답
                 score++;
-                selectedRect.setAttribute('fill', '#dcfce7');
-                selectedRect.setAttribute('stroke', '#22c55e');
-                selectedRect.setAttribute('stroke-width', '2');
-                
+                const selectedRect = selectedSvg.querySelector('rect');
+                if (selectedRect) {
+                    selectedRect.setAttribute('fill', '#dcfce7');
+                    selectedRect.setAttribute('stroke', '#22c55e');
+                    selectedRect.setAttribute('stroke-width', '2');
+                }
                 feedbackText.textContent = '🎉 정답입니다!';
                 feedbackText.style.color = 'green';
             } else {
                 // 오답
-                selectedRect.setAttribute('fill', '#fee2e2');
-                selectedRect.setAttribute('stroke', '#ef4444');
-                selectedRect.setAttribute('stroke-width', '2');
-
+                const selectedRect = selectedSvg.querySelector('rect');
+                if (selectedRect) {
+                    selectedRect.setAttribute('fill', '#fee2e2');
+                    selectedRect.setAttribute('stroke', '#ef4444');
+                    selectedRect.setAttribute('stroke-width', '2');
+                }
                 feedbackText.textContent = '❌ 틀렸습니다.';
                 feedbackText.style.color = 'red';
-
-                const correctSvg = allOptionSvgs[correctIndex];
-
-                if (!correctSvg) {
-                    console.error("오류: 정답 인덱스에 해당하는 SVG 요소를 찾을 수 없습니다.", correctIndex);
-                    return;
-                }
-                
-                const correctRect = correctSvg.querySelector('rect');
-
-                if (!correctRect) {
-                    console.error("오류: 정답 SVG에서 'rect' 요소를 찾을 수 없습니다.", correctSvg);
-                    return;
-                }
-                correctRect.setAttribute('fill', '#dcfce7');
-                correctRect.setAttribute('stroke', '#22c55e');
-                correctRect.setAttribute('stroke-width', '2');
             }
+
+            // 정답 표시
+            const correctSvg = allOptionSvgs[correctIndex];
+            if (correctSvg) {
+                const correctRect = correctSvg.querySelector('rect');
+                if (correctRect) {
+                    correctRect.setAttribute('fill', '#dcfce7');
+                    correctRect.setAttribute('stroke', '#22c55e');
+                    correctRect.setAttribute('stroke-width', '2');
+                }
+            }
+
 
             if (currentQuestion.explanation) {
                 explanationText.textContent = `풀이: ${currentQuestion.explanation}`;
@@ -623,38 +771,50 @@
             });
         }
 
-        /** 5. 다음 문제로 이동 */
+        /** 5. 다음 문제로 이동 (수정: 마지막 문제일 때 타이머 중지) */
         function goToNextQuestion() {
             currentQuestionIndex++;
-            if (currentQuestionIndex < quizData.length) {
+            if (currentQuestionIndex < currentQuiz.questions.length) { 
                 loadQuestion();
             } else {
-                showResults();
+                showResults(false); // (수정) 시간 초과 아님
+                clearInterval(timerInterval); // (수정) 퀴즈 완료 시 타이머 중지
             }
         }
 
-        /** 6. 결과 화면 표시 */
-        function showResults() {
+        /** 6. 결과 화면 표시 (수정: 시간 초과 메시지 추가) */
+        function showResults(isTimeOut = false) {
+            clearInterval(timerInterval); // (수정) 결과 표시 시 타이머 확실히 중지
+            
             quizSection.classList.add('hidden');
             resultsSection.classList.remove('hidden');
+
+            // (수정) 시간 초과 여부에 따라 제목 변경
+            const title = currentQuiz.title || "퀴즈";
+            if (isTimeOut) {
+                resultsTitle.textContent = "⏰ 시간이 초과되었습니다!";
+            } else {
+                resultsTitle.textContent = `${title} 퀴즈 완료!`;
+            }
             
-            totalQuestionsResult.textContent = `${quizData.length} 문제`;
+            totalQuestionsResult.textContent = `${currentQuiz.questions.length} 문제`; 
             finalScore.textContent = `${score} 개`;
         }
 
         /** 7. 앱 초기화 (처음으로) */
         function resetApp() {
-            quizData = [];
+            currentQuiz = {}; 
             currentQuestionIndex = 0;
             score = 0;
-            isLoadedFromUrl = false; // (수정) URL 로드 플래그 리셋
+            isLoadedFromUrl = false; 
+            clearInterval(timerInterval); // (수정) 타이머 초기화
             
             quizSection.classList.add('hidden');
             resultsSection.classList.add('hidden');
             actionControls.classList.add('hidden');
             loadStatus.classList.add('hidden');
             
-            document.getElementById('json-input-section').classList.remove('hidden');
+            jsonInputSection.classList.remove('hidden'); 
             
             // URL 해시를 지우고 앱을 리셋함
             window.history.pushState({}, '', window.location.pathname);
@@ -662,26 +822,21 @@
             jsonError.classList.add('hidden');
         }
 
-        /** 8. 퀴즈 종료 (JSON 선택 화면으로) - (현재 quitQuizBtn이 resetApp을 호출하므로 이 함수는 사용되지 않음) */
-        function quitQuiz() {
-            quizSection.classList.add('hidden');
-            actionControls.classList.remove('hidden');
-        }
 
         /** 9a. 문제지만 인쇄하기 */
         function printQuestionsOnly() {
             printableArea.innerHTML = '';
 
-            const questionsTitle = document.createElement('h1');
-            questionsTitle.innerHTML = '퀴즈 문제지';
-            questionsTitle.className = 'print-answer-key-title';
-            printableArea.appendChild(questionsTitle);
             
-            // 2열 컨테이너 생성
+            const quizTitle = document.createElement('h1');
+            quizTitle.innerHTML = currentQuiz.title || "퀴즈 문제지";
+            quizTitle.className = 'print-quiz-title';
+            printableArea.appendChild(quizTitle);
+
             const questionsContainer = document.createElement('div');
             questionsContainer.className = 'print-column-container';
 
-            quizData.forEach((question, index) => {
+            currentQuiz.questions.forEach((question, index) => { 
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'print-question-item';
 
@@ -747,7 +902,7 @@
 
             // --- 0. 전체 제목 ---
             const answersTitle = document.createElement('h1');
-            answersTitle.innerHTML = '정답 및 풀이';
+            answersTitle.innerHTML = (currentQuiz.title ? `${currentQuiz.title} ` : "") + '정답 및 풀이'; 
             answersTitle.className = 'print-answer-key-title';
             printableArea.appendChild(answersTitle);
 
@@ -760,7 +915,7 @@
             const quickKeyContainer = document.createElement('div');
             quickKeyContainer.className = 'print-quick-key-container';
             
-            quizData.forEach((question, index) => {
+            currentQuiz.questions.forEach((question, index) => { 
                 const keyItem = document.createElement('span');
                 keyItem.className = 'print-quick-key-item';
                 keyItem.textContent = `${index + 1}. (${question.answerIndex + 1})`; // 예: 1. (3)
@@ -778,7 +933,7 @@
             const explanationsContainer = document.createElement('div');
             explanationsContainer.className = 'print-column-container';
 
-            quizData.forEach((question, index) => {
+            currentQuiz.questions.forEach((question, index) => { 
                 const answerItemDiv = document.createElement('div');
                 answerItemDiv.className = 'print-answer-item';
 
@@ -834,7 +989,7 @@
         function backToJsonEditor() {
             actionControls.classList.add('hidden');
             loadStatus.classList.add('hidden');
-            document.getElementById('json-input-section').classList.remove('hidden');
+            jsonInputSection.classList.remove('hidden'); 
         }
 
         /** 12. JSON 입력창 비우기 */
@@ -849,11 +1004,11 @@
                 const hash = window.location.hash;
 
                 if (hash && hash.startsWith('#q=')) {
-                    isLoadedFromUrl = true; // (신규) URL로 로드되었음을 표시
+                    isLoadedFromUrl = true; 
                     
                     const quizDataB64 = hash.substring(3); // #q= 를 제거
                     
-                    // btoa 오류를 해결하기 위해 UTF-8 디코딩 파이프라인 적용
+                    
                     const standardBase64 = quizDataB64.replace(/-/g, '+').replace(/_/g, '/');
                     const binaryString = atob(standardBase64);
                     
@@ -866,15 +1021,16 @@
                     
                     jsonInput.value = decodedJson;
                     
-                    // 자동으로 "문제 불러오기" 클릭
-                    loadJsonBtn.click(); // loadJsonData()가 호출되고 quizData가 채워짐
+                    
+                    loadJsonData(); 
                     return true; // 로드 성공
                 }
             } catch (error) {
                 console.error("URL에서 퀴즈 로드 실패:", error);
-                isLoadedFromUrl = false; // (수정) 실패 시 플래그 리셋
+                isLoadedFromUrl = false; 
                 jsonError.textContent = "URL에서 퀴즈를 불러오는 데 실패했습니다. 링크가 올바른지 확인하세요.";
                 jsonError.classList.remove('hidden');
+                jsonInputSection.classList.remove('hidden'); 
             }
             return false; // 로드 실패 또는 해시 없음
         }
@@ -884,15 +1040,15 @@
             try {
                 const jsonData = jsonInput.value;
 
-                // btoa 오류를 해결하기 위해 UTF-8 인코딩 파이프라인 적용
+                
                 const utf8Bytes = new TextEncoder().encode(jsonData);
                 const binaryString = String.fromCodePoint(...utf8Bytes);
                 const base64Data = btoa(binaryString).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
                 
-                // ?q= 대신 #q= 를 사용
+                
                 const shareUrl = `${window.location.origin}${window.location.pathname}#q=${base64Data}`;
 
-                // 임시 텍스트 영역을 만들어 복사
+                
                 const tempInput = document.createElement('textarea');
                 tempInput.value = shareUrl;
                 document.body.appendChild(tempInput);
@@ -917,21 +1073,8 @@
         // --- 이벤트 리스너 연결 ---
         window.addEventListener('DOMContentLoaded', () => {
             
-            // (수정) URL 해시부터 확인
-            const loadedFromUrl = loadQuizFromUrl();
-            
-            // URL에서 로드하지 않은 경우에만 기본 JSON 설정
-            if (!loadedFromUrl) {
-                jsonInput.value = DEFAULT_QUIZ_JSON;
-            }
-
-            // (수정) URL에서 성공적으로 로드한 경우,
-            // 퀴즈 시작(startQuiz)을 *하지 않고*
-            // loadJsonData()가 '퀴즈 시작/인쇄' 화면을 보여주도록 함.
-            // (이전의 if (loadedFromUrl && quizData.length > 0) { startQuiz(); } 블록 삭제)
             
             loadJsonBtn.addEventListener('click', loadJsonData);
-            
             resetDefaultJsonBtn.addEventListener('click', () => {
                 jsonInput.value = DEFAULT_QUIZ_JSON;
                 jsonError.classList.add('hidden');
@@ -946,11 +1089,18 @@
             printQuestionsBtn.addEventListener('click', printQuestionsOnly);
             printAnswersBtn.addEventListener('click', printAnswersOnly);
             
-            // '퀴즈 종료' 버튼이 '처음으로'(resetApp)를 호출하도록 설정
             quitQuizBtn.addEventListener('click', resetApp);
             
             nextQuestionBtn.addEventListener('click', goToNextQuestion);
             restartQuizBtn.addEventListener('click', resetApp);
+
+            
+            const loadedFromUrl = loadQuizFromUrl();
+            
+            
+            if (!loadedFromUrl) {
+                jsonInput.value = DEFAULT_QUIZ_JSON;
+            }
         });
 
     </script>
