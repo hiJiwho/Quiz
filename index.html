@@ -462,6 +462,7 @@
         const timerContainer = document.getElementById('timer-container'); 
         const timeLeftText = document.getElementById('time-left-text'); 
         const timerBar = document.getElementById('timer-bar'); 
+        const timerBarContainer = document.getElementById('timer-bar-container'); // (수정) 타이머 바 컨테이너 참조
         
         const questionTitle = document.getElementById('question-title');
         const svgContainer = document.getElementById('question-svg-container');
@@ -826,11 +827,19 @@
             
             clearInterval(timerInterval); 
             
-            if(currentQuiz.totalTimeLimitSeconds) {
+            // (수정) timerBar와 timerBarContainer가 모두 존재할 때만 실행
+            if(currentQuiz.totalTimeLimitSeconds && timerBar && timerBarContainer) {
                 const currentWidth = timerBar.getBoundingClientRect().width;
                 const containerWidth = timerBarContainer.getBoundingClientRect().width;
                 timerBar.style.transition = 'none';
-                timerBar.style.width = `${(currentWidth / containerWidth) * 100}%`;
+
+                // (수정) 0으로 나누기 방지
+                if (containerWidth > 0) {
+                    timerBar.style.width = `${(currentWidth / containerWidth) * 100}%`;
+                } else if (timeLeft <= 0) {
+                     timerBar.style.width = '0%'; // 시간이 다 된 경우
+                }
+                // containerWidth가 0이고 시간이 남은 경우, 너비 변경 없음 (현재 값 유지)
             }
 
             isAnswered = true;
@@ -1312,7 +1321,7 @@
                     // 리다이렉트가 발생하므로, 이후 코드는 실행되지 않음
                 
                 } else if (quizKey === '1') {
-                    // 시나리오 2: 쿼리(?j=1)가 있음 -> DB에서 로드하여 퀴즈 표시
+                    // 시나료 2: 쿼리(?j=1)가 있음 -> DB에서 로드하여 퀴즈 표시
                     await loadQuizFromQuery();
                 
                 } else {
@@ -1332,4 +1341,4 @@
 
     </script>
 </body>
-</html>
+</html> 
