@@ -167,32 +167,43 @@
          * 앱 UI 스타일 (Tailwind 대체)
          * ======================================
          */
-        
-        /* SVG 보기 버튼 호버 효과 */
-        .svg-option:hover > rect {
-            fill: #e5e7eb; /* bg-gray-200 */
-        }
 
-        /* (신규) 퀴즈 레이아웃 - 문제/SVG 영역 + 보기 영역 */
+        /* (수정) 퀴즈 레이아웃 */
         #quiz-content-area {
             display: flex;
+            flex-direction: column; /* 모바일 기본: 수직 정렬 */
             gap: 24px; /* gap-6 */
             min-height: 400px; /* 최소 높이 설정 */
         }
+        
         #quiz-question-area { /* 왼쪽: 문제, SVG */
-            flex: 1 1 50%; /* (수정) 기본 50% 너비 */
-            padding-right: 16px; /* pr-4 */
-            border-right: 1px solid #e5e7eb; /* border-r border-gray-200 */
+            flex: 1 1 50%; 
+            padding-right: 0; /* md 이상에서만 적용 */
+            border-right: none; /* md 이상에서만 적용 */
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
         }
+        
         #quiz-options-area { /* 오른쪽: 보기 */
-            flex: 1 1 50%; /* (수정) 기본 50% 너비 */
+            flex: 1 1 50%; 
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
+            gap: 12px; /* space-y-3 */
         }
+        
+        /* (신규) 데스크탑 2분할 레이아웃 */
+        @media (min-width: 768px) { /* md: */
+             #quiz-content-area {
+                flex-direction: row; /* 데스크탑: 수평 정렬 */
+             }
+             #quiz-question-area {
+                padding-right: 16px; /* pr-4 */
+                border-right: 1px solid #e5e7eb; /* border-r border-gray-200 */
+             }
+        }
+
 
         /* (신규) 타이머 바 스타일 */
         #timer-bar-container {
@@ -209,6 +220,78 @@
             width: 100%;
             transition: width 1s linear; /* 부드러운 애니메이션 (1초마다) */
         }
+        
+        /* (신규) HTML 보기 버튼 스타일 */
+        .html-option {
+            display: flex;
+            align-items: stretch; /* 높이를 꽉 채우도록 */
+            width: 100%;
+            min-height: 56px; /* h-14 */
+            padding: 0;
+            border: 1.5px solid #d1d5db; /* border border-gray-300 */
+            background-color: #f3f4f6; /* bg-gray-100 */
+            border-radius: 8px; /* rounded-lg */
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+            overflow: hidden; /* 내부 요소가 둥근 모서리를 넘지 않도록 */
+        }
+        
+        .html-option:hover {
+            background-color: #e5e7eb; /* hover:bg-gray-200 */
+        }
+        
+        .option-content {
+            flex-grow: 1;
+            padding: 12px 16px; /* p-3 md:p-4 */
+            font-size: 16px; /* text-base */
+            color: #111827; /* text-gray-900 */
+            line-height: 1.5;
+        }
+        
+        .option-svg-wrapper {
+            flex-shrink: 0;
+            width: 56px; /* w-14 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-left: 1.5px solid #d1d5db; /* border-l border-gray-300 */
+            background-color: #e5e7eb; /* bg-gray-200 */
+            padding: 8px;
+        }
+        
+        .option-svg-wrapper svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 보기 버튼 상태: 정답 */
+        .html-option[data-state="correct"] {
+            background-color: #dcfce7; /* bg-green-100 */
+            border-color: #22c55e; /* border-green-500 */
+            color: #166534; /* text-green-800 */
+        }
+        /* 보기 버튼 상태: 오답 */
+        .html-option[data-state="wrong"] {
+            background-color: #fee2e2; /* bg-red-100 */
+            border-color: #ef4444; /* border-red-500 */
+            color: #991b1b; /* text-red-800 */
+        }
+        /* 보기 버튼 상태: 비활성화 */
+        .html-option[disabled] {
+            cursor: default;
+            opacity: 0.8;
+        }
+        .html-option[disabled]:hover {
+            background-color: #f3f4f6; /* 비활성화 시 호버 색상 원복 */
+        }
+        .html-option[data-state="correct"][disabled]:hover {
+            background-color: #dcfce7;
+        }
+        .html-option[data-state="wrong"][disabled]:hover {
+            background-color: #fee2e2;
+        }
+        
     </style>
 </head>
 <body class="bg-gray-100 p-4 md:p-10">
@@ -277,8 +360,31 @@
                 </button>
              </div>
         </div>
+        
+        <!-- (신규) 3. 팝업 대기 섹션 (팝업 띄운 후 보임) --><div id="popup-waiting-section" class="p-6 md:p-10 text-center hidden">
+            <h2 id="popup-waiting-title" class="text-2xl font-bold text-gray-800 mb-4">퀴즈 진행 중...</h2>
+            <p class="text-gray-600 mb-6">퀴즈 팝업창에서 문제를 풀고 있습니다.</p>
+            
+            <div class="bg-blue-50 p-8 rounded-xl mb-6">
+                <svg class="w-16 h-16 text-blue-600 mx-auto animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="text-lg text-blue-800 mt-4">팝업창이 닫히면 이곳에 결과가 표시됩니다.</p>
+            </div>
 
-        <!-- 3. 퀴즈 풀기 섹션 (퀴즈 시작 후 보임) --><div id="quiz-section" class="p-6 md:p-8 hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button id="reopen-popup-btn" class="w-full bg-gray-600 text-white p-4 rounded-lg font-bold text-lg hover:bg-gray-700 transition">
+                    팝업 다시 띄우기
+                </button>
+                <button id="cancel-popup-btn" class="w-full bg-red-500 text-white p-4 rounded-lg font-bold text-lg hover:bg-red-600 transition">
+                    취소
+                </button>
+            </div>
+        </div>
+
+
+        <!-- 3. 퀴즈 풀기 섹션 (팝업창 내부 또는 단독 실행 시 보임) --><div id="quiz-section" class="p-6 md:p-8 hidden">
             <!-- 퀴즈 상단 바 --><div class="flex justify-between items-center mb-6">
                 <span id="quiz-run-title" class="text-lg font-bold text-gray-800 hidden"></span> <!-- (신규) 퀴즈 풀기 화면 제목 --><span id="progress-text" class="text-lg font-semibold text-gray-700">문제 1 / 10</span>
                 <button id="quit-quiz-btn" class="text-sm text-red-600 hover:text-red-800 font-medium">
@@ -302,8 +408,8 @@
                 </div>
                 
                 <!-- 오른쪽: 보기 목록 --><div id="quiz-options-area">
-                    <ul id="options-list" class="space-y-3">
-                        <!-- JS가 이곳에 SVG 보기 버튼을 삽입 --></ul>
+                    <!-- (수정) SVG <UL> 대신 HTML 버튼을 위한 DIV 사용 -->
+                    <!-- JS가 이곳에 HTML 보기 버튼을 삽입 -->
                 </div>
             </div>
 
@@ -368,7 +474,7 @@
         {
             "question": "다음 중 HTML(HyperText Markup Language)의 약자가 올바른 것은?",
             "options": [
-                { "text": "Hyperlinks and Text Markup Language 1234567890 1234567890 1234567890 1234567890" },
+                { "text": "Hyperlinks and Text Markup Language" },
                 { "text": "Home Tool Markup Language" },
                 { "text": "HyperText Markup Language" },
                 { "text": "Hyper Tool Multi Language" },
@@ -378,13 +484,13 @@
             "explanation": "HTML은 'HyperText Markup Language'의 약자입니다. 웹 페이지의 구조를 정의하는 마크업 언어입니다."
         },
         {
-            "question": "웹 페이지의 스타일(색상, 글꼴, 레이아웃)을 지정하는 언어는 무엇인가요?",
+            "question": "다음은 텍스트가 매우 길어서 두 줄 이상으로 넘어가는 선지에 대한 테스트입니다. 이 텍스트는 자동으로 줄바꿈되어야 하며, 버튼의 높이도 그에 맞게 자동으로 늘어나야 합니다. 이 기능이 올바르게 작동하는지 확인해주세요.",
             "options": [
-                { "text": "HTML" },
+                { "text": "짧은 텍스트" },
                 { "text": "JQuery" },
-                { "text": "Python" },
+                { "text": "이것은 매우 긴 텍스트입니다. 이 텍스트는 버튼 밖으로 넘치지 않고 자동으로 줄바꿈(wrapping)되어 여러 줄에 걸쳐 표시되어야 합니다. HTML 요소는 이것이 가능합니다." },
                 { "text": "JavaScript" },
-                { "text": "CSS" }
+                { "text": "CSS (정답)" }
             ],
             "answerIndex": 4,
             "explanation": "CSS(Cascading Style Sheets)는 웹 페이지의 디자인을 담당합니다."
@@ -429,12 +535,15 @@
         let currentQuestionIndex = 0;
         let score = 0;
         let isAnswered = false; 
-        let isLoadedFromUrl = false; 
         let timerInterval; 
         let timeLeft; 
         let wrongAnswers = []; 
+        
+        let quizPopup; // (신규) 팝업창 참조
+        let popupCheckInterval; // (신규) 팝업 닫힘 감지 인터벌
 
         // --- DOM 요소 가져오기 ---
+        const appContainer = document.getElementById('app-container'); // (신규) 앱 전체 컨테이너
         const jsonInputSection = document.getElementById('json-input-section'); 
         const jsonInput = document.getElementById('json-input');
         const jsonError = document.getElementById('json-error');
@@ -455,6 +564,10 @@
         const backToJsonBtn = document.getElementById('back-to-json-btn');
         const shareLinkBtn = document.getElementById('share-link-btn'); 
         
+        const popupWaitingSection = document.getElementById('popup-waiting-section'); // (신규) 팝업 대기
+        const reopenPopupBtn = document.getElementById('reopen-popup-btn'); // (신규)
+        const cancelPopupBtn = document.getElementById('cancel-popup-btn'); // (신규)
+
         const quizSection = document.getElementById('quiz-section');
         const quizRunTitle = document.getElementById('quiz-run-title'); 
         const quitQuizBtn = document.getElementById('quit-quiz-btn');
@@ -462,11 +575,12 @@
         const timerContainer = document.getElementById('timer-container'); 
         const timeLeftText = document.getElementById('time-left-text'); 
         const timerBar = document.getElementById('timer-bar'); 
-        const timerBarContainer = document.getElementById('timer-bar-container'); // (수정) 타이머 바 컨테이너 참조
+        const timerBarContainer = document.getElementById('timer-bar-container'); 
         
         const questionTitle = document.getElementById('question-title');
         const svgContainer = document.getElementById('question-svg-container');
-        const optionsList = document.getElementById('options-list');
+        const optionsArea = document.getElementById('quiz-options-area'); // (수정) optionsList -> optionsArea
+        
         const feedbackText = document.getElementById('feedback-text');
         const explanationText = document.getElementById('explanation-text');
         const nextQuestionBtn = document.getElementById('next-question-btn');
@@ -659,7 +773,7 @@
                 actionControls.classList.remove('hidden'); 
                 
                 
-                if (isLoadedFromUrl) {
+                if (window.opener) { // 팝업창이면 수정/공유 버튼 숨김
                     backToJsonBtn.classList.add('hidden');
                     shareLinkBtn.classList.add('hidden');
                 } else {
@@ -675,7 +789,6 @@
             } catch (error) {
                 // 실패
                 currentQuiz = {}; 
-                isLoadedFromUrl = false; 
                 jsonError.textContent = `JSON 오류: ${error.message}`;
                 jsonError.classList.remove('hidden');
                 actionControls.classList.add('hidden'); 
@@ -687,7 +800,9 @@
         function updateTimerDisplay() {
             const minutes = Math.floor(timeLeft / 60);
             const seconds = timeLeft % 60;
-            timeLeftText.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            if (timeLeftText) {
+                timeLeftText.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }
         }
 
 
@@ -699,7 +814,13 @@
             
             actionControls.classList.add('hidden'); 
             resultsSection.classList.add('hidden');
+            jsonInputSection.classList.add('hidden');
             quizSection.classList.remove('hidden');
+            
+            // 앱 컨테이너 스타일 변경 (팝업이므로 최대 너비 제거)
+            if (window.opener) {
+                 appContainer.classList.remove('max-w-5xl', 'mx-auto', 'shadow-2xl', 'rounded-xl', 'overflow-hidden');
+            }
             
             
             clearInterval(timerInterval); // 이전 타이머 초기화
@@ -708,14 +829,16 @@
                 timerContainer.classList.remove('hidden');
                 updateTimerDisplay();
                 
-                timerBar.style.transition = 'none'; // 애니메이션 초기화
-                timerBar.style.width = '100%';
-                
-                
-                setTimeout(() => {
-                    timerBar.style.transition = `width ${timeLeft}s linear`;
-                    timerBar.style.width = '0%';
-                }, 100);
+                if (timerBar) {
+                    timerBar.style.transition = 'none'; // 애니메이션 초기화
+                    timerBar.style.width = '100%';
+                    
+                    
+                    setTimeout(() => {
+                        timerBar.style.transition = `width ${timeLeft}s linear`;
+                        timerBar.style.width = '0%';
+                    }, 100);
+                }
 
                 timerInterval = setInterval(() => {
                     timeLeft--;
@@ -733,7 +856,7 @@
             loadQuestion();
         }
 
-        /** 3. 문제 불러오기 (수정: 텍스트 줄바꿈을 위해 <text> -> <foreignObject>로 변경) */
+        /** 3. 문제 불러오기 (수정: HTML 보기 버튼) */
         function loadQuestion() {
             // 초기화
             isAnswered = false;
@@ -755,150 +878,88 @@
                 svgContainer.classList.add('hidden');
             }
 
-            // 보기 버튼 생성 (SVG로 변경)
-            optionsList.innerHTML = '';
-            const svgNS = "http://www.w3.org/2000/svg";
+            // (수정) 보기 버튼을 HTML로 생성
+            optionsArea.innerHTML = '';
 
             currentQuestion.options.forEach((option, index) => {
-                const li = document.createElement('li');
+                const button = document.createElement('button');
+                button.className = 'html-option';
                 
-                const svg = document.createElementNS(svgNS, 'svg');
-                svg.setAttribute('width', '100%');
-                svg.setAttribute('height', '56');
-                svg.setAttribute('viewBox', '0 0 500 56');
-                svg.classList.add('svg-option');
-                svg.style.cursor = 'pointer';
+                // 1. 텍스트 컨텐츠
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'option-content';
+                contentDiv.textContent = `(${index + 1}) ${option.text}`;
+                button.appendChild(contentDiv);
 
-                const rect = document.createElementNS(svgNS, 'rect');
-                rect.setAttribute('x', '1');
-                rect.setAttribute('y', '1');
-                rect.setAttribute('width', '498');
-                rect.setAttribute('height', '54');
-                rect.setAttribute('rx', '8');
-                rect.setAttribute('ry', '8');
-                rect.setAttribute('fill', '#f3f4f6');
-                rect.setAttribute('stroke', '#d1d5db');
-                rect.setAttribute('stroke-width', '1.5');
-                
-                // (수정) SVG <text> 대신 <foreignObject>와 HTML <div>를 사용해 줄바꿈 처리
-                const textForeignObject = document.createElementNS(svgNS, 'foreignObject');
-                textForeignObject.setAttribute('x', '20'); // 좌측 패딩
-                textForeignObject.setAttribute('y', '1');  // 상단 정렬
-                textForeignObject.setAttribute('width', '410'); // 텍스트 영역 너비 (440(이미지 시작) - 20(좌측패딩) - 10(우측패딩))
-                textForeignObject.setAttribute('height', '54'); // <rect>와 동일한 높이
-                
-                const textDiv = document.createElement('div');
-                // (수정) HTML <div>에 스타일 적용 (줄바꿈, 수직 정렬, 폰트)
-                textDiv.setAttribute('style', `
-                    display: flex; 
-                    align-items: center; 
-                    height: 100%; 
-                    width: 100%;
-                    font-family: 'Inter', 'Pretendard', sans-serif; 
-                    font-size: 16px; 
-                    color: #111827; 
-                    white-space: normal; 
-                    word-break: break-all; /* 스크린샷처럼 공백 없는 긴 텍스트도 강제 줄바꿈 */
-                    padding-right: 10px; /* 우측 SVG 이미지와의 간격 */
-                    pointer-events: none; /* 클릭 이벤트가 부모 SVG로 전달되도록 함 */
-                `);
-                textDiv.textContent = `(${index + 1}) ${option.text}`;
-                
-                textForeignObject.appendChild(textDiv);
-
-                svg.appendChild(rect);
-                svg.appendChild(textForeignObject); // (수정) <text> 대신 <foreignObject> 삽입
-
-                // 보기(선지)의 SVG 이미지가 있는 경우 (이 부분은 동일)
+                // 2. SVG 이미지 (있을 경우)
                 if (option.svgImage) {
-                    const foreignObject = document.createElementNS(svgNS, 'foreignObject');
-                    foreignObject.setAttribute('x', '440'); // 텍스트 영역(410) + 패딩(20) + 여백(10)
-                    foreignObject.setAttribute('y', '8');
-                    foreignObject.setAttribute('width', '40');
-                    foreignObject.setAttribute('height', '40');
+                    const svgWrapper = document.createElement('div');
+                    svgWrapper.className = 'option-svg-wrapper';
+                    svgWrapper.innerHTML = option.svgImage;
                     
-                    const div = document.createElement('div');
-                    div.setAttribute('style', 'width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; pointer-events: none;');
-                    div.innerHTML = option.svgImage;
-
-                    const embeddedSvg = div.querySelector('svg');
+                    const embeddedSvg = svgWrapper.querySelector('svg');
                     if (embeddedSvg) {
                         embeddedSvg.setAttribute('width', '100%');
                         embeddedSvg.setAttribute('height', '100%');
                     }
-                    
-                    foreignObject.appendChild(div);
-                    svg.appendChild(foreignObject);
+                    button.appendChild(svgWrapper);
                 }
                 
-                svg.addEventListener('click', () => selectAnswer(svg, index));
+                button.addEventListener('click', () => selectAnswer(button, index));
                 
-                li.appendChild(svg);
-                optionsList.appendChild(li);
+                optionsArea.appendChild(button);
             });
         }
 
-        /** 4. 답안 선택 (수정: 타이머 일시 정지) */
-        function selectAnswer(selectedSvg, selectedIndex) {
+        /** 4. 답안 선택 (수정: HTML 보기 버튼 + 타이머 일시 정지) */
+        function selectAnswer(selectedButton, selectedIndex) {
             if (isAnswered) return;
             
             
             clearInterval(timerInterval); 
             
-            // (수정) timerBar와 timerBarContainer가 모두 존재할 때만 실행
+            
             if(currentQuiz.totalTimeLimitSeconds && timerBar && timerBarContainer) {
-                const currentWidth = timerBar.getBoundingClientRect().width;
-                const containerWidth = timerBarContainer.getBoundingClientRect().width;
-                timerBar.style.transition = 'none';
+                try {
+                    const currentWidth = timerBar.getBoundingClientRect().width;
+                    const containerWidth = timerBarContainer.getBoundingClientRect().width;
+                    timerBar.style.transition = 'none';
 
-                // (수정) 0으로 나누기 방지
-                if (containerWidth > 0) {
-                    timerBar.style.width = `${(currentWidth / containerWidth) * 100}%`;
-                } else if (timeLeft <= 0) {
-                     timerBar.style.width = '0%'; // 시간이 다 된 경우
+                    
+                    if (containerWidth > 0) {
+                        timerBar.style.width = `${(currentWidth / containerWidth) * 100}%`;
+                    } else if (timeLeft <= 0) {
+                         timerBar.style.width = '0%'; // 시간이 다 된 경우
+                    }
+                } catch(e) {
+                    console.warn("Timer bar pause failed:", e.message);
                 }
-                // containerWidth가 0이고 시간이 남은 경우, 너비 변경 없음 (현재 값 유지)
             }
 
             isAnswered = true;
             const currentQuestion = currentQuiz.questions[currentQuestionIndex]; 
             const correctIndex = currentQuestion.answerIndex;
 
-            const allOptionSvgs = optionsList.querySelectorAll('.svg-option');
+            const allOptionButtons = optionsArea.querySelectorAll('.html-option');
             
             if (selectedIndex === correctIndex) {
                 // 정답
                 score++;
-                const selectedRect = selectedSvg.querySelector('rect');
-                if (selectedRect) {
-                    selectedRect.setAttribute('fill', '#dcfce7');
-                    selectedRect.setAttribute('stroke', '#22c55e');
-                    selectedRect.setAttribute('stroke-width', '2');
-                }
+                selectedButton.setAttribute('data-state', 'correct');
                 feedbackText.textContent = '🎉 정답입니다!';
                 feedbackText.style.color = 'green';
             } else {
                 // 오답
                 wrongAnswers.push(currentQuestionIndex); 
-                const selectedRect = selectedSvg.querySelector('rect');
-                if (selectedRect) {
-                    selectedRect.setAttribute('fill', '#fee2e2');
-                    selectedRect.setAttribute('stroke', '#ef4444');
-                    selectedRect.setAttribute('stroke-width', '2');
-                }
+                selectedButton.setAttribute('data-state', 'wrong');
                 feedbackText.textContent = '❌ 틀렸습니다.';
                 feedbackText.style.color = 'red';
             }
 
             // 정답 표시
-            const correctSvg = allOptionSvgs[correctIndex];
-            if (correctSvg) {
-                const correctRect = correctSvg.querySelector('rect');
-                if (correctRect) {
-                    correctRect.setAttribute('fill', '#dcfce7');
-                    correctRect.setAttribute('stroke', '#22c55e');
-                    correctRect.setAttribute('stroke-width', '2');
-                }
+            const correctButton = allOptionButtons[correctIndex];
+            if (correctButton) {
+                correctButton.setAttribute('data-state', 'correct');
             }
 
 
@@ -908,8 +969,8 @@
             }
 
             nextQuestionBtn.classList.remove('hidden');
-            allOptionSvgs.forEach(svg => {
-                svg.style.cursor = 'default';
+            allOptionButtons.forEach(button => {
+                button.disabled = true;
             });
         }
 
@@ -922,12 +983,14 @@
                 if (currentQuiz.totalTimeLimitSeconds && timeLeft > 0) {
                     updateTimerDisplay(); // 현재 남은 시간으로 텍스트 업데이트
                     
-                    timerBar.style.transition = 'none'; // 애니메이션 초기화
-                    
-                    setTimeout(() => {
-                        timerBar.style.transition = `width ${timeLeft}s linear`;
-                        timerBar.style.width = '0%';
-                    }, 100);
+                    if (timerBar) {
+                        timerBar.style.transition = 'none'; // 애니메이션 초기화
+                        
+                        setTimeout(() => {
+                            timerBar.style.transition = `width ${timeLeft}s linear`;
+                            timerBar.style.width = '0%';
+                        }, 100);
+                    }
 
                     timerInterval = setInterval(() => {
                         timeLeft--;
@@ -947,13 +1010,32 @@
             }
         }
 
-        /** 6. 결과 화면 표시 (수정: 틀린 문제 해설 추가) */
+        /** 6. 결과 화면 표시 (수정: 팝업창에서 postMessage) */
         function showResults(isTimeOut = false) {
             clearInterval(timerInterval); 
             
+            // (신규) 팝업창(window.opener)에서 실행된 경우
+            if (window.opener) {
+                // 1. 메인창으로 결과 데이터 전송
+                window.opener.postMessage({
+                    type: 'quizResult',
+                    payload: {
+                        score: score,
+                        totalQuestions: currentQuiz.questions.length,
+                        wrongAnswers: wrongAnswers,
+                        quizData: currentQuiz, // 퀴즈 원본 데이터
+                        isTimeOut: isTimeOut
+                    }
+                }, '*'); // 실제 환경에서는 '*' 대신 메인창의 origin을 지정하는 것이 좋습니다.
+                
+                // 2. 팝업창 닫기
+                window.close();
+                return; // 팝업창에서는 결과 화면을 띄우지 않음
+            }
+
+            // (기존) 메인창에서 단독 실행된 경우 (예: 팝업이 차단됐을 때)
             quizSection.classList.add('hidden');
             resultsSection.classList.remove('hidden');
-
             
             const title = currentQuiz.title || "퀴즈";
             if (isTimeOut) {
@@ -966,12 +1048,18 @@
             finalScore.textContent = `${score} 개`;
 
             
+            renderWrongAnswers(currentQuiz, wrongAnswers);
+        }
+
+        /** (신규) 틀린 문제 해설 렌더링 함수 (재사용) */
+        function renderWrongAnswers(quizData, wrongIdxArray) {
             wrongAnswersList.innerHTML = ''; // 초기화
-            if (wrongAnswers.length > 0) {
+            if (wrongIdxArray.length > 0) {
                 wrongAnswersSection.classList.remove('hidden');
                 
-                wrongAnswers.forEach(wrongIndex => {
-                    const question = currentQuiz.questions[wrongIndex];
+                wrongIdxArray.forEach(wrongIndex => {
+                    const question = quizData.questions[wrongIndex];
+                    if (!question) return; // 안전 코드
                     
                     const itemDiv = document.createElement('div');
                     itemDiv.className = 'p-4 bg-gray-50 rounded-lg border border-gray-200';
@@ -1001,13 +1089,25 @@
                 });
 
             } else {
-                // 틀린 문제가 없으면 섹션 숨김
+                // 틀린 문제가 없으면
                 wrongAnswersSection.classList.add('hidden');
+                const noWrongMsg = document.createElement('p');
+                noWrongMsg.className = "text-green-600 font-bold text-center text-lg";
+                noWrongMsg.textContent = "🎉 모든 문제를 맞혔습니다! 🎉";
+                wrongAnswersList.appendChild(noWrongMsg);
+                wrongAnswersSection.classList.remove('hidden');
             }
         }
 
-        /** 7. 앱 초기화 (처음으로) (수정: DB 삭제 추가) */
+
+        /** 7. 앱 초기화 (처음으로) (수정: DB 삭제 + 팝업 상태 초기화) */
         async function resetApp() {
+            // (신규) 팝업 감지 인터벌 중지
+            clearInterval(popupCheckInterval);
+            if (quizPopup && !quizPopup.closed) {
+                quizPopup.close();
+            }
+
             // (신규) DB에 저장된 퀴즈가 있다면 삭제
             try {
                 await deleteQuizFromDB(QUIZ_ID_KEY);
@@ -1019,7 +1119,6 @@
             currentQuiz = {}; 
             currentQuestionIndex = 0;
             score = 0;
-            isLoadedFromUrl = false; 
             clearInterval(timerInterval); 
             wrongAnswers = []; 
             
@@ -1029,11 +1128,21 @@
             wrongAnswersList.innerHTML = ''; 
             actionControls.classList.add('hidden');
             loadStatus.classList.add('hidden');
+            popupWaitingSection.classList.add('hidden'); // (신규) 팝업 대기창 숨기기
             
             jsonInputSection.classList.remove('hidden'); 
             
-            // URL 쿼리 스트링을 지우고 앱을 리셋함
-            window.history.pushState({}, '', window.location.pathname);
+            // (수정) URL 해시/쿼리만 제거 (SecurityError 방지)
+            try {
+                 window.history.pushState({}, '', window.location.pathname);
+            } catch (e) {
+                console.warn("Could not clear URL state:", e.message);
+                // blob: 환경 등에서 오류 발생 시, 새로고침으로 대체
+                if (!window.opener) { // 팝업창이 아닐 때만
+                     window.location.href = window.location.pathname;
+                }
+            }
+           
             jsonInput.value = DEFAULT_QUIZ_JSON;
             jsonError.classList.add('hidden');
         }
@@ -1206,6 +1315,8 @@
             actionControls.classList.add('hidden');
             loadStatus.classList.add('hidden');
             jsonInputSection.classList.remove('hidden'); 
+            resultsSection.classList.add('hidden'); // (신규) 결과창 숨기기
+            wrongAnswersSection.classList.add('hidden'); // (신규) 틀린 문제 숨기기
         }
 
         /** 12. JSON 입력창 비우기 */
@@ -1217,7 +1328,6 @@
         /** 13. (수정) URL 해시 처리 -> DB 저장 및 리다이렉트 */
         async function handleHashRedirect(hash) {
             try {
-                isLoadedFromUrl = true; 
                 
                 const quizDataB64 = hash.substring(3); // #q= 를 제거
                 
@@ -1235,13 +1345,11 @@
                 // (신규) DB에 저장
                 await saveQuizToDB(QUIZ_ID_KEY, decodedJson);
                 
-                // (신규) 쿼리 스트링으로 리다이렉트
-                window.location.href = window.location.pathname + "?j=1";
-                // 리다이렉트가 실행될 것이므로, 이후 스크립트 실행은 중단됨
+                // (수정) 쿼리 스트링 없이 리다이렉트
+                window.location.href = window.location.pathname;
                 
             } catch (error) {
                 console.error("URL 해시 처리 실패:", error);
-                isLoadedFromUrl = false; 
                 jsonError.textContent = "URL에서 퀴즈를 불러오는 데 실패했습니다. 링크가 올바른지 확인하세요.";
                 jsonError.classList.remove('hidden');
                 jsonInputSection.classList.remove('hidden'); 
@@ -1283,22 +1391,97 @@
             }
         }
         
-        /** (신규) 쿼리 스트링에서 퀴즈 로드 */
-        async function loadQuizFromQuery() {
+        /** (신규) 팝업창 열고 퀴즈 시작 */
+        async function startQuizInPopup() {
             try {
-                const decodedJson = await loadQuizFromDB(QUIZ_ID_KEY);
-                jsonInput.value = decodedJson;
-                isLoadedFromUrl = true; // URL로 로드됨 (수정 버튼 숨기기용)
-                loadJsonData(); // 퀴즈 데이터 파싱 및 UI 표시
+                // 1. DB에 현재 퀴즈 데이터 저장
+                await saveQuizToDB(QUIZ_ID_KEY, jsonInput.value);
+                
+                // 2. 팝업창 열기
+                quizPopup = window.open(window.location.href, 'quizPopup', 'width=800,height=700,scrollbars=yes,resizable=yes');
+                
+                if (!quizPopup || quizPopup.closed || typeof quizPopup.closed == 'undefined') {
+                    throw new Error("팝업이 차단되었습니다. 팝업을 허용해주세요.");
+                }
+
+                // 3. 메인창 UI를 '대기 모드'로 변경
+                actionControls.classList.add('hidden');
+                popupWaitingSection.classList.remove('hidden');
+                resultsSection.classList.add('hidden'); // 이전 결과 숨기기
+                wrongAnswersSection.classList.add('hidden');
+
+                // 4. 팝업창 닫힘 감지 시작
+                clearInterval(popupCheckInterval); // 이전 감지기 중지
+                popupCheckInterval = setInterval(() => {
+                    if (quizPopup && quizPopup.closed) {
+                        clearInterval(popupCheckInterval);
+                        console.log("팝업 닫힘 감지 (결과 수신 전)");
+                        // 퀴즈가 완료되지 않고 닫힌 경우
+                        if (!resultsSection.classList.contains('hidden')) {
+                           // 이미 결과가 표시됨 (정상 종료)
+                        } else {
+                           // 비정상 종료 (X버튼) -> 대기 모드 취소
+                           cancelPopupMode();
+                        }
+                    }
+                }, 1000);
+
             } catch (error) {
-                console.error("DB에서 퀴즈 로드 실패:", error);
-                jsonError.textContent = "퀴즈 데이터를 불러오는 데 실패했습니다. 링크가 만료되었거나 잘못되었을 수 있습니다.";
+                console.error("팝업 퀴즈 시작 실패:", error);
+                jsonError.textContent = `오류: ${error.message}`;
                 jsonError.classList.remove('hidden');
-                jsonInputSection.classList.remove('hidden'); // JSON 입력창 표시
-                // URL에서 쿼리 스트링 제거
-                window.history.pushState({}, '', window.location.pathname);
             }
         }
+
+        /** (신규) 팝업 대기 모드 취소 */
+        function cancelPopupMode() {
+            clearInterval(popupCheckInterval);
+            if (quizPopup && !quizPopup.closed) {
+                quizPopup.close();
+            }
+            popupWaitingSection.classList.add('hidden');
+            actionControls.classList.remove('hidden'); // 다시 액션 버튼 표시
+            resultsSection.classList.add('hidden');
+    
+            // DB 데이터 삭제 (퀴즈 취소)
+            deleteQuizFromDB(QUIZ_ID_KEY).catch(err => console.error("DB 삭제 실패(취소):", err));
+        }
+
+        /** (신규) 팝업에서 보낸 메시지(결과) 수신 */
+        window.addEventListener('message', (event) => {
+            // (보안) 실제 환경에서는 event.origin을 확인해야 함
+            // if (event.origin !== window.location.origin) return;
+
+            if (event.data && event.data.type === 'quizResult') {
+                const result = event.data.payload;
+                console.log("메인창: 퀴즈 결과 수신", result);
+                
+                // 팝업 감지 중지
+                clearInterval(popupCheckInterval);
+                
+                // 1. 대기창 숨기기
+                popupWaitingSection.classList.add('hidden');
+                
+                // 2. 결과창 표시
+                currentQuiz = result.quizData; // 퀴즈 데이터 동기화 (틀린 문제 표시용)
+                const title = currentQuiz.title || "퀴즈";
+                if (result.isTimeOut) {
+                    resultsTitle.textContent = "⏰ 시간이 초과되었습니다!";
+                } else {
+                    resultsTitle.textContent = `${title} 퀴즈 완료!`;
+                }
+                totalQuestionsResult.textContent = `${result.totalQuestions} 문제`; 
+                finalScore.textContent = `${result.score} 개`;
+
+                renderWrongAnswers(currentQuiz, result.wrongAnswers);
+                
+                resultsSection.classList.remove('hidden');
+                
+                // 3. '처음으로' 버튼이 JSON 입력창으로 가도록 기능 수정
+                restartQuizBtn.removeEventListener('click', resetApp);
+                restartQuizBtn.addEventListener('click', backToJsonEditor); // (수정) 결과 확인 후 JSON 편집기로
+            }
+        });
 
 
         // --- 이벤트 리스너 연결 (수정: async DOMContentLoaded) ---
@@ -1316,44 +1499,64 @@
             backToJsonBtn.addEventListener('click', backToJsonEditor);
             shareLinkBtn.addEventListener('click', generateShareLink);
             
-            startQuizBtn.addEventListener('click', startQuiz);
+            // (수정) 퀴즈 시작 버튼 -> 팝업 띄우기
+            startQuizBtn.addEventListener('click', startQuizInPopup);
+            
             printQuestionsBtn.addEventListener('click', printQuestionsOnly);
             printAnswersBtn.addEventListener('click', printAnswersOnly);
             
-            quitQuizBtn.addEventListener('click', resetApp);
+            // (수정) 팝업 대기창 버튼
+            reopenPopupBtn.addEventListener('click', () => {
+                 if (quizPopup && !quizPopup.closed) {
+                    quizPopup.focus();
+                 } else {
+                    // 팝업이 닫힌 경우 -> 다시 띄우기
+                    quizPopup = window.open(window.location.href, 'quizPopup', 'width=800,height=700,scrollbars=yes,resizable=yes');
+                 }
+            });
+            cancelPopupBtn.addEventListener('click', cancelPopupMode);
+            
+            quitQuizBtn.addEventListener('click', () => {
+                // (수정) 팝업창에서 '처음으로'는 그냥 창을 닫음
+                if (window.opener) {
+                    window.close();
+                } else {
+                    resetApp(); // 일반 모드에서는 리셋
+                }
+            });
             
             nextQuestionBtn.addEventListener('click', goToNextQuestion);
-            restartQuizBtn.addEventListener('click', resetApp);
+            restartQuizBtn.addEventListener('click', resetApp); // 기본: 리셋 (팝업 결과 수신 시 변경됨)
 
             // (신규) 페이지 로드 시 URL 라우팅 로직
             try {
                 await initDB(); // DB부터 초기화
 
                 const hash = window.location.hash;
-                const params = new URLSearchParams(window.location.search);
-                const quizKey = params.get('j');
 
                 if (hash && hash.startsWith('#q=')) {
                     // 시나리오 1: 해시(#q=)가 있음 -> DB에 저장하고 리다이렉트
                     await handleHashRedirect(hash);
                     // 리다이렉트가 발생하므로, 이후 코드는 실행되지 않음
                 
-                } else if (quizKey === '1') {
-                    // 시나료 2: 쿼리(?j=1)가 있음 -> DB에서 로드하여 퀴즈 표시
-                    await loadQuizFromQuery();
-                
                 } else {
-                    // 시나리오 3: 아무것도 없음 -> 기본 편집기 화면
-                    jsonInput.value = DEFAULT_QUIZ_JSON;
-                    jsonInputSection.classList.remove('hidden'); // (수정) 기본 화면 명시적 표시
+                    // 시나리오 2: DB에 데이터가 있는지 확인 (팝업 또는 리다이렉트)
+                    const quizData = await loadQuizFromDB(QUIZ_ID_KEY);
+                    // (성공) DB 데이터 삭제 및 퀴즈 시작
+                    await deleteQuizFromDB(QUIZ_ID_KEY);
+                    console.log("DB에서 퀴즈 로드 성공, 데이터 삭제됨.");
+                    
+                    jsonInput.value = quizData;
+                    loadJsonData(); // 퀴즈 데이터 파싱 (UI 준비)
+                    startQuiz();    // 퀴즈 시작
+                
                 }
                 
             } catch (error) {
-                console.error("App initialization failed:", error);
-                jsonError.textContent = "앱 초기화 실패. 기본 모드로 시작합니다.";
-                jsonError.classList.remove('hidden');
+                // 시나리오 3: DB에 데이터가 없음 (에러 또는 일반 접속)
+                console.log("DB에 퀴즈 데이터 없음, 편집기 모드로 시작:", error.message);
                 jsonInput.value = DEFAULT_QUIZ_JSON;
-                jsonInputSection.classList.remove('hidden');
+                jsonInputSection.classList.remove('hidden'); // 기본 편집기 화면
             }
         });
 
