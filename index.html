@@ -330,6 +330,14 @@
             <button id="restart-quiz-btn" class="w-full bg-blue-600 text-white p-4 rounded-lg font-bold text-lg hover:bg-blue-700 transition mt-8">
                 처음으로 돌아가기
             </button>
+
+            <!-- (신규) 틀린 문제 해설 섹션 -->
+            <div id="wrong-answers-section" class="mt-10 text-left hidden">
+                <h3 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">틀린 문제 다시 보기</h3>
+                <div id="wrong-answers-list" class="space-y-6">
+                    <!-- JS가 이곳에 틀린 문제 해설을 삽입 -->
+                </div>
+            </div>
         </div>
 
     </div>
@@ -419,6 +427,7 @@
         let isLoadedFromUrl = false; 
         let timerInterval; // (수정) 퀴즈 전체의 타이머
         let timeLeft; // (수정) 퀴즈 전체의 남은 시간
+        let wrongAnswers = []; // (신규) 틀린 문제 추적 배열
 
         // --- DOM 요소 가져오기 ---
         const jsonInputSection = document.getElementById('json-input-section'); 
@@ -461,6 +470,8 @@
         const totalQuestionsResult = document.getElementById('total-questions-result');
         const finalScore = document.getElementById('final-score');
         const restartQuizBtn = document.getElementById('restart-quiz-btn');
+        const wrongAnswersSection = document.getElementById('wrong-answers-section'); // (신규)
+        const wrongAnswersList = document.getElementById('wrong-answers-list'); // (신규)
 
         const printableArea = document.getElementById('printable-area');
 
@@ -574,7 +585,6 @@
             const minutes = Math.floor(timeLeft / 60);
             const seconds = timeLeft % 60;
             timeLeftText.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-            // timeLeftText.textContent = `남은 시간: ${timeLeft}초`;
         }
 
 
@@ -582,6 +592,7 @@
         function startQuiz() {
             currentQuestionIndex = 0;
             score = 0;
+            wrongAnswers = []; // (신규) 틀린 문제 배열 초기화
             
             actionControls.classList.add('hidden'); 
             resultsSection.classList.add('hidden');
@@ -628,9 +639,6 @@
             explanationText.classList.add('hidden');
             nextQuestionBtn.classList.add('hidden');
             
-            // (수정) 문제당 타이머 리셋 로직 전체 삭제
-            // (타이머는 startQuiz에서 전역으로 관리됨)
-
             const currentQuestion = currentQuiz.questions[currentQuestionIndex]; 
             
             progressText.textContent = `문제 ${currentQuestionIndex + 1} / ${currentQuiz.questions.length}`;
@@ -709,14 +717,19 @@
             });
         }
 
-        /** 4. 답안 선택 (수정: 타이머 중지 로직 제거) */
+        /** 4. 답안 선택 (수정: 타이머 일시 정지) */
         function selectAnswer(selectedSvg, selectedIndex) {
             if (isAnswered) return;
             
-            // (수정) 답을 선택해도 타이머는 멈추지 않음.
-            // clearInterval(timerInterval); 
-            // timerBar.style.width = timerBar.style.width; 
-            // timerBar.style.transition = 'none';
+            // (수정) 답을 선택하면 타이머 일시 정지
+            clearInterval(timerInterval); 
+            // (수정) 타이머 바 애니메이션 정지
+            if(currentQuiz.totalTimeLimitSeconds) {
+                const currentWidth = timerBar.getBoundingClientRect().width;
+                const containerWidth = timerBarContainer.getBoundingClientRect().width;
+                timerBar.style.transition = 'none';
+                timerBar.style.width = `${(currentWidth / containerWidth) * 100}%`;
+            }
 
             isAnswered = true;
             const currentQuestion = currentQuiz.questions[currentQuestionIndex]; 
@@ -724,7 +737,6 @@
 
             const allOptionSvgs = optionsList.querySelectorAll('.svg-option');
             
-            // (수정) 시간 초과 로직(selectedIndex === -1) 제거. 전역 타이머가 처리함.
             if (selectedIndex === correctIndex) {
                 // 정답
                 score++;
@@ -738,6 +750,7 @@
                 feedbackText.style.color = 'green';
             } else {
                 // 오답
+                wrongAnswers.push(currentQuestionIndex); // (신규) 틀린 문제 인덱스 저장
                 const selectedRect = selectedSvg.querySelector('rect');
                 if (selectedRect) {
                     selectedRect.setAttribute('fill', '#fee2e2');
@@ -771,18 +784,43 @@
             });
         }
 
-        /** 5. 다음 문제로 이동 (수정: 마지막 문제일 때 타이머 중지) */
+        /** 5. 다음 문제로 이동 (수정: 타이머 재시작) */
         function goToNextQuestion() {
             currentQuestionIndex++;
             if (currentQuestionIndex < currentQuiz.questions.length) { 
+                
+                // (수정) 다음 문제로 넘어가기 전 타이머 재시작
+                if (currentQuiz.totalTimeLimitSeconds && timeLeft > 0) {
+                    updateTimerDisplay(); // 현재 남은 시간으로 텍스트 업데이트
+                    
+                    timerBar.style.transition = 'none'; // 애니메이션 초기화
+                    // 너비는 이미 정지 시 설정됨
+
+                    // 부드러운 애니메이션 다시 시작
+                    setTimeout(() => {
+                        timerBar.style.transition = `width ${timeLeft}s linear`;
+                        timerBar.style.width = '0%';
+                    }, 100);
+
+                    timerInterval = setInterval(() => {
+                        timeLeft--;
+                        updateTimerDisplay();
+                        
+                        if (timeLeft <= 0) {
+                            clearInterval(timerInterval);
+                            showResults(true); // 시간 초과
+                        }
+                    }, 1000);
+                }
+                
                 loadQuestion();
             } else {
-                showResults(false); // (수정) 시간 초과 아님
-                clearInterval(timerInterval); // (수정) 퀴즈 완료 시 타이머 중지
+                showResults(false); // 시간 초과 아님
+                // 퀴즈 완료 시 타이머는 showResults에서 자동으로 중지됨
             }
         }
 
-        /** 6. 결과 화면 표시 (수정: 시간 초과 메시지 추가) */
+        /** 6. 결과 화면 표시 (수정: 틀린 문제 해설 추가) */
         function showResults(isTimeOut = false) {
             clearInterval(timerInterval); // (수정) 결과 표시 시 타이머 확실히 중지
             
@@ -799,6 +837,46 @@
             
             totalQuestionsResult.textContent = `${currentQuiz.questions.length} 문제`; 
             finalScore.textContent = `${score} 개`;
+
+            // (신규) 틀린 문제 해설 표시 로직
+            wrongAnswersList.innerHTML = ''; // 초기화
+            if (wrongAnswers.length > 0) {
+                wrongAnswersSection.classList.remove('hidden');
+                
+                wrongAnswers.forEach(wrongIndex => {
+                    const question = currentQuiz.questions[wrongIndex];
+                    
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'p-4 bg-gray-50 rounded-lg border border-gray-200';
+                    
+                    // 1. 문제
+                    const qTitle = document.createElement('h4');
+                    qTitle.className = 'text-lg font-bold text-gray-800 mb-2';
+                    qTitle.textContent = `[문제 ${wrongIndex + 1}] ${question.question}`;
+                    itemDiv.appendChild(qTitle);
+                    
+                    // 2. 정답
+                    const answer = document.createElement('p');
+                    answer.className = 'text-md font-semibold text-green-700';
+                    const correctOptionText = question.options[question.answerIndex].text;
+                    answer.textContent = `정답: (${question.answerIndex + 1}) ${correctOptionText}`;
+                    itemDiv.appendChild(answer);
+                    
+                    // 3. 해설
+                    if (question.explanation) {
+                        const explanation = document.createElement('p');
+                        explanation.className = 'text-md text-gray-700 mt-2 pt-2 border-t border-gray-200';
+                        explanation.textContent = `풀이: ${question.explanation}`;
+                        itemDiv.appendChild(explanation);
+                    }
+                    
+                    wrongAnswersList.appendChild(itemDiv);
+                });
+
+            } else {
+                // 틀린 문제가 없으면 섹션 숨김
+                wrongAnswersSection.classList.add('hidden');
+            }
         }
 
         /** 7. 앱 초기화 (처음으로) */
@@ -808,9 +886,12 @@
             score = 0;
             isLoadedFromUrl = false; 
             clearInterval(timerInterval); // (수정) 타이머 초기화
+            wrongAnswers = []; // (신규) 틀린 문제 배열 초기화
             
             quizSection.classList.add('hidden');
             resultsSection.classList.add('hidden');
+            wrongAnswersSection.classList.add('hidden'); // (신규) 틀린 문제 섹션 숨기기
+            wrongAnswersList.innerHTML = ''; // (신규) 틀린 문제 리스트 비우기
             actionControls.classList.add('hidden');
             loadStatus.classList.add('hidden');
             
