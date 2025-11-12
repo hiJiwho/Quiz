@@ -368,7 +368,7 @@
         {
             "question": "다음 중 HTML(HyperText Markup Language)의 약자가 올바른 것은?",
             "options": [
-                { "text": "Hyperlinks and Text Markup Language" },
+                { "text": "Hyperlinks and Text Markup Language 1234567890 1234567890 1234567890 1234567890" },
                 { "text": "Home Tool Markup Language" },
                 { "text": "HyperText Markup Language" },
                 { "text": "Hyper Tool Multi Language" },
@@ -733,7 +733,7 @@
             loadQuestion();
         }
 
-        /** 3. 문제 불러오기 */
+        /** 3. 문제 불러오기 (수정: 텍스트 줄바꿈을 위해 <text> -> <foreignObject>로 변경) */
         function loadQuestion() {
             // 초기화
             isAnswered = false;
@@ -780,21 +780,39 @@
                 rect.setAttribute('stroke', '#d1d5db');
                 rect.setAttribute('stroke-width', '1.5');
                 
-                const text = document.createElementNS(svgNS, 'text');
-                text.setAttribute('x', '20');
-                text.setAttribute('y', '28');
-                text.setAttribute('dominant-baseline', 'middle');
-                text.setAttribute('fill', '#111827');
-                text.setAttribute('font-size', '16');
-                text.setAttribute('font-family', "'Inter', 'Pretendard', sans-serif");
-                text.textContent = `(${index + 1}) ${option.text}`; 
+                // (수정) SVG <text> 대신 <foreignObject>와 HTML <div>를 사용해 줄바꿈 처리
+                const textForeignObject = document.createElementNS(svgNS, 'foreignObject');
+                textForeignObject.setAttribute('x', '20'); // 좌측 패딩
+                textForeignObject.setAttribute('y', '1');  // 상단 정렬
+                textForeignObject.setAttribute('width', '410'); // 텍스트 영역 너비 (440(이미지 시작) - 20(좌측패딩) - 10(우측패딩))
+                textForeignObject.setAttribute('height', '54'); // <rect>와 동일한 높이
+                
+                const textDiv = document.createElement('div');
+                // (수정) HTML <div>에 스타일 적용 (줄바꿈, 수직 정렬, 폰트)
+                textDiv.setAttribute('style', `
+                    display: flex; 
+                    align-items: center; 
+                    height: 100%; 
+                    width: 100%;
+                    font-family: 'Inter', 'Pretendard', sans-serif; 
+                    font-size: 16px; 
+                    color: #111827; 
+                    white-space: normal; 
+                    word-break: break-all; /* 스크린샷처럼 공백 없는 긴 텍스트도 강제 줄바꿈 */
+                    padding-right: 10px; /* 우측 SVG 이미지와의 간격 */
+                    pointer-events: none; /* 클릭 이벤트가 부모 SVG로 전달되도록 함 */
+                `);
+                textDiv.textContent = `(${index + 1}) ${option.text}`;
+                
+                textForeignObject.appendChild(textDiv);
 
                 svg.appendChild(rect);
-                svg.appendChild(text);
+                svg.appendChild(textForeignObject); // (수정) <text> 대신 <foreignObject> 삽입
 
+                // 보기(선지)의 SVG 이미지가 있는 경우 (이 부분은 동일)
                 if (option.svgImage) {
                     const foreignObject = document.createElementNS(svgNS, 'foreignObject');
-                    foreignObject.setAttribute('x', '440');
+                    foreignObject.setAttribute('x', '440'); // 텍스트 영역(410) + 패딩(20) + 여백(10)
                     foreignObject.setAttribute('y', '8');
                     foreignObject.setAttribute('width', '40');
                     foreignObject.setAttribute('height', '40');
@@ -1341,4 +1359,4 @@
 
     </script>
 </body>
-</html> 
+</html>
