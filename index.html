@@ -994,6 +994,8 @@
         function showResults(isTimeOut = false) {
             clearInterval(timerInterval); 
             
+            // 팝업 로직 제거됨
+            
             showSection('results-section');
             
             const title = currentQuiz.title || "퀴즈";
@@ -1480,6 +1482,8 @@
                             
                             importStartBtn.onclick = async () => {
                                 try {
+                                    // (수정) Import에서 Qex로 갈 땐, currentQuiz가 필요함
+                                    currentQuiz = JSON.parse(quizData); 
                                     const state = { mode: 'Quiz', data: JSON.stringify(currentQuiz) };
                                     await saveStateToDB(DB_STATE_KEY, state);
                                     window.location.href = window.location.pathname;
@@ -1487,6 +1491,7 @@
                             };
                             importPrintBtn.onclick = async () => {
                                 try {
+                                    currentQuiz = JSON.parse(quizData); 
                                     const state = { mode: 'Print', data: JSON.stringify(currentQuiz) };
                                     await saveStateToDB(DB_STATE_KEY, state);
                                     window.location.href = window.location.pathname;
@@ -1494,6 +1499,7 @@
                             };
                             importShareBtn.onclick = async () => {
                                 try {
+                                    currentQuiz = JSON.parse(quizData); 
                                     const state = { mode: 'Qex', data: JSON.stringify(currentQuiz) };
                                     await saveStateToDB(DB_STATE_KEY, state);
                                     window.location.href = window.location.pathname;
