@@ -611,8 +611,10 @@
         const qexportBtn = document.getElementById('qexport-btn');
         const aexportBtn = document.getElementById('aexport-btn');
         
-        // 팝업 대기 섹션 DOM 참조 제거
+        // (수정) 팝업 대기 섹션 DOM 참조 제거
         // const popupWaitingSection = document.getElementById('popup-waiting-section');
+        // const reopenPopupBtn = document.getElementById('reopen-popup-btn');
+        // const cancelPopupBtn = document.getElementById('cancel-popup-btn');
 
         const quizSection = document.getElementById('quiz-section');
         const quizRunTitle = document.getElementById('quiz-run-title'); 
@@ -1306,21 +1308,25 @@
             jsonError.classList.add('hidden');
         }
 
-        /** 13. URL 파라미터/해시 DB에 저장 및 리다이렉트 */
+        /** 13. URL 파라미터/해시 DB에 저장 및 리다이렉트 (수정: B64 즉시 디코딩) */
         async function handleUrlParametersAndRedirect() {
             try {
                 const params = new URLSearchParams(window.location.search);
                 const hash = window.location.hash;
                 const mode = params.get('mode');
                 
+                // (수정) 해시(#q=)에서 B64 데이터를 가져와 *즉시 디코딩*
                 const quizDataB64 = (hash && hash.startsWith('#q=')) ? hash.substring(3) : null;
+                const jsonData = decodeBase64(quizDataB64); // B64 -> JSON 문자열
+                
                 const name = params.get('name') || null;
                 const msg = params.get('msg') || null;
                 
-                const state = { mode, data: quizDataB64, name, msg };
+                // (수정) DB에는 B64가 아닌 *JSON 문자열*을 저장
+                const state = { mode, data: jsonData, name, msg };
                 await saveStateToDB(DB_STATE_KEY, state);
                 
-                window.location.href = window.location.pathname; // (수정) 쿼리 스트링 없는 / 로 리다이렉트
+                window.location.href = window.location.pathname; // 쿼리 스트링 없는 / 로 리다이렉트
                 
             } catch (error) {
                 console.error("URL 처리 및 DB 저장 실패:", error);
@@ -1351,9 +1357,9 @@
             }
         }
         
-        /** 15. Base64 데이터 디코드 */
+        /** 15. Base64 데이터 디코드 (수정: null 체크) */
         function decodeBase64(base64String) {
-            if (!base64String) throw new Error("Base64 data is missing.");
+            if (!base64String) return null; // (수정)
             const standardBase64 = base64String.replace(/-/g, '+').replace(/_/g, '/');
             const binaryString = atob(standardBase64);
             const utf8Bytes = new Uint8Array(binaryString.length);
@@ -1453,16 +1459,15 @@
                     
                     const { mode, data, name, msg } = state;
                     
-                    // (수정) data가 항상 B64 인코딩된 것은 아님 (Qex, Aex)
-                    let quizData;
-                    if (mode === 'Import') {
-                        quizData = decodeBase64(data); // Import 시에만 해시(data) 디코딩
-                    } else {
-                        quizData = data; // Qex, Aex 등은 이미 JSON 문자열
-                    }
+                    // (수정) data는 이제 항상 JSON 문자열
+                    const quizData = data;
                     
+                    if (!quizData) {
+                        throw new Error("DB state contained no quiz data.");
+                    }
+
                     currentQuiz = JSON.parse(quizData);
-                    jsonInput.value = quizData; // 퀴즈 데이터 설정
+                    jsonInput.value = quizData; 
 
                     switch (mode) {
                         case 'Import':
@@ -1508,11 +1513,10 @@
                             
                         case 'Quiz':
                             loadJsonData('Quiz'); // Quiz 모드로 UI 로드
-                            startQuiz(); // (수정) Quiz 모드는 즉시 퀴즈 시작
+                            startQuiz(); // Quiz 모드는 즉시 퀴즈 시작
                             break;
 
                         default:
-                            // DB에 알 수 없는 모드가 있었음
                              throw new Error("Unknown mode in DB.");
                     }
                 }
