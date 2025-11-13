@@ -571,8 +571,9 @@
         let db;
         const DB_NAME = 'QuizAppDB';
         const STORE_NAME = 'Quizzes';
-        const DB_STATE_KEY = 'appState'; // (수정) DB에 저장할 상태 키
-
+        const DB_STATE_KEY = 'appState';
+        
+        let g_currentMode = null; // (신규) 현재 실행 모드 (Quiz, Print 등)
         let currentQuiz = {}; 
         let currentQuestionIndex = 0;
         let score = 0;
@@ -580,10 +581,6 @@
         let timerInterval; 
         let timeLeft; 
         let wrongAnswers = []; 
-        
-        // 팝업 관련 변수 제거
-        // let quizPopup;
-        // let popupCheckInterval;
 
         // --- DOM 요소 가져오기 ---
         const appContainer = document.getElementById('app-container');
@@ -611,11 +608,6 @@
         const qexportBtn = document.getElementById('qexport-btn');
         const aexportBtn = document.getElementById('aexport-btn');
         
-        // (수정) 팝업 대기 섹션 DOM 참조 제거
-        // const popupWaitingSection = document.getElementById('popup-waiting-section');
-        // const reopenPopupBtn = document.getElementById('reopen-popup-btn');
-        // const cancelPopupBtn = document.getElementById('cancel-popup-btn');
-
         const quizSection = document.getElementById('quiz-section');
         const quizRunTitle = document.getElementById('quiz-run-title'); 
         const quitQuizBtn = document.getElementById('quit-quiz-btn');
@@ -799,6 +791,8 @@
 
                 showSection('action-controls');
                 
+                g_currentMode = mode; // (수정) 전역 모드 변수 설정
+
                 if (mode === 'Quiz') { // 퀴즈 풀기만
                     printButtonsContainer.classList.add('hidden');
                     editorButtonsContainer.classList.add('hidden');
@@ -837,9 +831,8 @@
             
             showSection('quiz-section');
 
-            const params = new URLSearchParams(window.location.search);
-            const mode = params.get('mode');
-            if (mode === 'Quiz') {
+            // (수정) 전역 모드 변수(g_currentMode)를 확인
+            if (g_currentMode === 'Quiz') {
                 if (quitQuizBtn) quitQuizBtn.classList.add('hidden');
             } else {
                  if (quitQuizBtn) quitQuizBtn.classList.remove('hidden');
@@ -1001,8 +994,6 @@
         function showResults(isTimeOut = false) {
             clearInterval(timerInterval); 
             
-            // 팝업 로직 제거됨
-            
             showSection('results-section');
             
             const title = currentQuiz.title || "퀴즈";
@@ -1015,6 +1006,18 @@
             totalQuestionsResult.textContent = `${currentQuiz.questions.length} 문제`; 
             finalScore.textContent = `${score} 개`;
             renderWrongAnswers(currentQuiz, wrongAnswers);
+            
+            // (신규) 결과 화면의 '처음으로' 버튼이 모드에 따라 다르게 작동
+            restartQuizBtn.removeEventListener('click', resetApp);
+            restartQuizBtn.removeEventListener('click', backToJsonEditor);
+            
+            if (g_currentMode === 'Quiz' || g_currentMode === 'Print') {
+                // Quiz/Print 모드였으면 '처음으로' 버튼이 아예 앱을 리셋하도록 함
+                restartQuizBtn.addEventListener('click', resetApp);
+            } else {
+                // 일반 모드였으면 JSON 편집기로 돌아감
+                restartQuizBtn.addEventListener('click', backToJsonEditor);
+            }
         }
 
         /** 틀린 문제 해설 렌더링 (재사용) */
@@ -1135,6 +1138,7 @@
             score = 0;
             clearInterval(timerInterval); 
             wrongAnswers = []; 
+            g_currentMode = null; // (신규) 전역 모드 리셋
             
             showSection('json-input-section');
             wrongAnswersList.innerHTML = ''; 
@@ -1359,7 +1363,7 @@
         
         /** 15. Base64 데이터 디코드 (수정: null 체크) */
         function decodeBase64(base64String) {
-            if (!base64String) return null; // (수정)
+            if (!base64String) return null;
             const standardBase64 = base64String.replace(/-/g, '+').replace(/_/g, '/');
             const binaryString = atob(standardBase64);
             const utf8Bytes = new Uint8Array(binaryString.length);
@@ -1395,14 +1399,14 @@
             // --- Export 버튼 리스너 (DB 저장 및 리다이렉트) ---
             qexportBtn.addEventListener('click', async () => {
                 try {
-                    const state = { mode: 'Qexport', data: JSON.stringify(currentQuiz) };
+                    const state = { mode: 'Qex', data: JSON.stringify(currentQuiz) };
                     await saveStateToDB(DB_STATE_KEY, state);
                     window.location.href = window.location.pathname; // 리다이렉트
                 } catch (e) { console.error("Qexport DB 저장 실패:", e); }
             });
             aexportBtn.addEventListener('click', async () => {
                 try {
-                    const state = { mode: 'Aexport', data: JSON.stringify(currentQuiz) };
+                    const state = { mode: 'Aex', data: JSON.stringify(currentQuiz) };
                     await saveStateToDB(DB_STATE_KEY, state);
                     window.location.href = window.location.pathname; // 리다이렉트
                 } catch (e) { console.error("Aexport DB 저장 실패:", e); }
@@ -1459,8 +1463,8 @@
                     
                     const { mode, data, name, msg } = state;
                     
-                    // (수정) data는 이제 항상 JSON 문자열
-                    const quizData = data;
+                    // (수정) data는 이제 항상 JSON 문자열 (Import/Qex/Aex 모두)
+                    const quizData = data; 
                     
                     if (!quizData) {
                         throw new Error("DB state contained no quiz data.");
@@ -1513,7 +1517,8 @@
                             
                         case 'Quiz':
                             loadJsonData('Quiz'); // Quiz 모드로 UI 로드
-                            startQuiz(); // Quiz 모드는 즉시 퀴즈 시작
+                            // (수정) 자동 시작이 아니라 '퀴즈 풀기' 버튼을 보여줌
+                            // startQuiz(); 
                             break;
 
                         default:
