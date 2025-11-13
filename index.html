@@ -13,45 +13,44 @@
 
         /* * ======================================
          * 인쇄 전용 스타일 (A4 용지)
-         * (수정) 10pt 폰트, 2열(column) 레이아웃 적용
          * ======================================
          */
         @media print {
-            /* * 1. 앱의 UI(버튼, 입력창 등)는 모두 숨깁니다.
-             */
             body > #app-container {
                 display: none;
             }
-
-            /* * 2. 인쇄 전용 영역(#printable-area)만 화면에 표시합니다.
-             */
             body > #printable-area {
-                display: block !important; /* 강제로 보이게 함 */
+                display: block !important;
             }
-
-            /* * 3. A4 용지 여백 설정
-             */
+            /* (신규) Aexport 모드에서 답지 열람 인쇄 시 */
+            #aexport-section {
+                display: none !important;
+            }
+            #printable-area.aexport-print {
+                display: block !importnat;
+            }
+            body > #aexport-section {
+                display: none !important;
+            }
+            
             @page {
                 size: A4;
                 margin: 1.2cm;
             }
 
-            /* * 4. 인쇄용 폰트 및 페이지 나눔 설정
-             */
             #printable-area {
-                font-size: 10pt; /* (수정) 10pt 폰트로 설정 */
+                font-size: 10pt;
                 color: #000;
             }
             
-            /* (신규) 2열 레이아웃 컨테이너 */
             .print-column-container {
                 column-count: 2;
-                column-gap: 1.5cm; /* 1.5cm 간격 */
+                column-gap: 1.5cm;
             }
 
             .print-question-item {
                 margin-bottom: 10px;
-                page-break-inside: avoid; /* 열(column)이나 페이지 중간에 잘리는 것을 방지 */
+                page-break-inside: avoid;
             }
 
             .print-question-title {
@@ -73,7 +72,7 @@
             }
 
             .print-options {
-                list-style-type: none; /* JS에서 수동으로 삽입 */
+                list-style-type: none;
                 list-style-position: inside;
                 padding-left: 5px;
             }
@@ -112,7 +111,7 @@
                 padding-left: 8px;
             }
             
-            .print-quiz-title { /* (신규) 퀴즈 제목 */
+            .print-quiz-title {
                 text-align: center;
                 font-size: 1.6em;
                 font-weight: bold;
@@ -159,107 +158,101 @@
 
             .print-answer-item {
                 margin-bottom: 8px;
-                page-break-inside: avoid; /* 열(column)이나 페이지 중간에 잘리는 것을 방지 */
+                page-break-inside: avoid;
             }
         }
 
         /* * ======================================
-         * 앱 UI 스타일 (Tailwind 대체)
+         * 앱 UI 스타일
          * ======================================
          */
 
-        /* (수정) 퀴즈 레이아웃 */
         #quiz-content-area {
             display: flex;
             flex-direction: column; /* 모바일 기본: 수직 정렬 */
-            gap: 24px; /* gap-6 */
-            min-height: 400px; /* 최소 높이 설정 */
+            gap: 24px;
+            min-height: 400px;
         }
         
-        #quiz-question-area { /* 왼쪽: 문제, SVG */
+        #quiz-question-area {
             flex: 1 1 50%; 
-            padding-right: 0; /* md 이상에서만 적용 */
-            border-right: none; /* md 이상에서만 적용 */
+            padding-right: 0;
+            border-right: none;
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
         }
         
-        #quiz-options-area { /* 오른쪽: 보기 */
+        #quiz-options-area {
             flex: 1 1 50%; 
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
-            gap: 12px; /* space-y-3 */
+            gap: 12px;
         }
         
-        /* (신규) 데스크탑 2분할 레이아웃 */
         @media (min-width: 768px) { /* md: */
              #quiz-content-area {
-                flex-direction: row; /* 데스크탑: 수평 정렬 */
+                flex-direction: row;
              }
              #quiz-question-area {
-                padding-right: 16px; /* pr-4 */
-                border-right: 1px solid #e5e7eb; /* border-r border-gray-200 */
+                padding-right: 16px;
+                border-right: 1px solid #e5e7eb;
              }
         }
 
-
-        /* (신규) 타이머 바 스타일 */
         #timer-bar-container {
             width: 100%;
-            background-color: #e0e7ff; /* bg-indigo-100 */
-            border-radius: 4px; /* rounded */
-            height: 8px; /* h-2 */
-            margin-top: 16px; /* mt-4 */
+            background-color: #e0e7ff;
+            border-radius: 4px;
+            height: 8px;
+            margin-top: 16px;
             overflow: hidden;
         }
         #timer-bar {
             height: 100%;
-            background-color: #6366f1; /* bg-indigo-500 */
+            background-color: #6366f1;
             width: 100%;
-            transition: width 1s linear; /* 부드러운 애니메이션 (1초마다) */
+            transition: width 1s linear;
         }
         
-        /* (신규) HTML 보기 버튼 스타일 */
         .html-option {
             display: flex;
-            align-items: stretch; /* 높이를 꽉 채우도록 */
+            align-items: stretch;
             width: 100%;
-            min-height: 56px; /* h-14 */
+            min-height: 56px;
             padding: 0;
-            border: 1.5px solid #d1d5db; /* border border-gray-300 */
-            background-color: #f3f4f6; /* bg-gray-100 */
-            border-radius: 8px; /* rounded-lg */
+            border: 1.5px solid #d1d5db;
+            background-color: #f3f4f6;
+            border-radius: 8px;
             cursor: pointer;
             text-align: left;
             transition: all 0.2s;
-            overflow: hidden; /* 내부 요소가 둥근 모서리를 넘지 않도록 */
+            overflow: hidden;
         }
         
         .html-option:hover {
-            background-color: #e5e7eb; /* hover:bg-gray-200 */
+            background-color: #e5e7eb;
         }
         
         .option-content {
             flex-grow: 1;
-            padding: 12px 16px; /* p-3 md:p-4 */
-            font-size: 16px; /* text-base */
-            color: #111827; /* text-gray-900 */
+            padding: 12px 16px;
+            font-size: 16px;
+            color: #111827;
             line-height: 1.5;
-            /* (신규) 긴 단어 강제 줄바꿈 */
             word-break: break-word;
             overflow-wrap: break-word;
         }
         
         .option-svg-wrapper {
             flex-shrink: 0;
-            width: 56px; /* w-14 */
+            width: 56px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-left: 1.5px solid #d1d5db; /* border-l border-gray-300 */
-            background-color: #e5e7eb; /* bg-gray-200 */
+            border-left: 1.5px solid #d1d5db;
+            background-color: #e5e7eb;
             padding: 8px;
         }
         
@@ -268,25 +261,22 @@
             height: 100%;
         }
 
-        /* 보기 버튼 상태: 정답 */
         .html-option[data-state="correct"] {
-            background-color: #dcfce7; /* bg-green-100 */
-            border-color: #22c55e; /* border-green-500 */
-            color: #166534; /* text-green-800 */
+            background-color: #dcfce7;
+            border-color: #22c55e;
+            color: #166534;
         }
-        /* 보기 버튼 상태: 오답 */
         .html-option[data-state="wrong"] {
-            background-color: #fee2e2; /* bg-red-100 */
-            border-color: #ef4444; /* border-red-500 */
-            color: #991b1b; /* text-red-800 */
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
         }
-        /* 보기 버튼 상태: 비활성화 */
         .html-option[disabled] {
             cursor: default;
             opacity: 0.8;
         }
         .html-option[disabled]:hover {
-            background-color: #f3f4f6; /* 비활성화 시 호버 색상 원복 */
+            background-color: #f3f4f6;
         }
         .html-option[data-state="correct"][disabled]:hover {
             background-color: #dcfce7;
@@ -299,14 +289,10 @@
 </head>
 <body class="bg-gray-100 p-4 md:p-10">
 
-    <!-- 
-      ======================================
-      앱 메인 컨테이너
-      (수정) max-w-4xl -> max-w-5xl
-      ======================================
-    --><div id="app-container" class="max-w-5xl mx-auto bg-white shadow-2xl rounded-xl overflow-hidden">
+    <div id="app-container" class="max-w-5xl mx-auto bg-white shadow-2xl rounded-xl overflow-hidden">
         
-        <!-- 1. JSON 입력 섹션 --><div id="json-input-section" class="p-6 md:p-8">
+        <!-- 1. JSON 입력 섹션 (기본) -->
+        <div id="json-input-section" class="p-6 md:p-8">
             <h1 class="text-2xl font-bold text-gray-800 mb-4">JSON 퀴즈 생성기</h1>
             <p class="text-gray-600 mb-5">
                 아래 텍스트 영역에 퀴즈 문제를 JSON 형식으로 붙여넣으세요.
@@ -314,9 +300,9 @@
                 예제 JSON을 참고하여 형식을 맞추거나, 직접 수정하여 사용할 수 있습니다.
             </p>
 
-            <!-- JSON 입력창 --><textarea id="json-input" rows="15" class="w-full p-4 border border-gray-300 rounded-lg font-mono text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+            <textarea id="json-input" rows="15" class="w-full p-4 border border-gray-300 rounded-lg font-mono text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
             
-            <!-- 오류 메시지 --><p id="json-error" class="text-red-600 font-semibold mt-2 hidden"></p>
+            <p id="json-error" class="text-red-600 font-semibold mt-2 hidden"></p>
 
             <div class="flex flex-col gap-3 mt-4">
                 <button id="load-json-btn" class="w-full bg-blue-600 text-white px-5 py-3 rounded-lg font-bold hover:bg-blue-700 transition duration-200">
@@ -336,13 +322,18 @@
             </div>
         </div>
         
-        <!-- 2. 액션 컨트롤 섹션 (JSON 로드 후 보임) --><div id="action-controls" class="p-6 md:p-8 border-t border-gray-200 hidden">
-            <h2 id="quiz-title-display" class="text-2xl font-bold text-gray-800 mb-4 text-center"></h2> <!-- (신규) 퀴즈 제목 표시 --><div id="load-status" class="hidden mb-4 p-4 bg-green-100 text-green-800 rounded-lg">
+        <!-- 2. 액션 컨트롤 섹션 (JSON 로드 후) -->
+        <div id="action-controls" class="p-6 md:p-8 border-t border-gray-200 hidden">
+            <h2 id="quiz-title-display" class="text-2xl font-bold text-gray-800 mb-4 text-center"></h2>
+            <div id="load-status" class="hidden mb-4 p-4 bg-green-100 text-green-800 rounded-lg">
                 <span id="question-count" class="font-bold">0</span>개의 문제를 성공적으로 불러왔습니다.
-                <span id="timer-setting-display" class="block text-sm text-green-700 mt-1 hidden"></span> <!-- (수정) 타이머 설정 표시 --></div>
-            <div class="grid grid-cols-1 gap-4">
+                <span id="timer-setting-display" class="block text-sm text-green-700 mt-1 hidden"></span>
+            </div>
+            
+            <!-- 퀴즈/인쇄 버튼 -->
+            <div id="main-actions-container" class="grid grid-cols-1 gap-4">
                 <button id="start-quiz-btn" class="w-full bg-green-600 text-white p-4 rounded-lg font-bold text-lg hover:bg-green-700 transition">
-                    2. 퀴즈 풀기 시작!
+                    퀴즈 풀기 시작!
                 </button>
                 <div id="print-buttons-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <button id="print-questions-btn" class="w-full bg-gray-700 text-white p-4 rounded-lg font-bold text-lg hover:bg-gray-800 transition">
@@ -354,69 +345,43 @@
                 </div>
             </div>
             
-             <!-- (수정) JSON 수정하기 / 공유하기 버튼 그룹 --><div id="editor-buttons-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+             <!-- 공유/수정 버튼 -->
+             <div id="editor-buttons-container" class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                 <button id="back-to-json-btn" class="w-full bg-gray-200 text-gray-700 p-3 rounded-lg hover:bg-gray-300 transition">
                     JSON 수정하기
                 </button>
-                <button id="share-link-btn" class="w-full bg-blue-100 text-blue-700 p-3 rounded-lg hover:bg-blue-200 transition">
-                    공유 링크 생성
+                <button id="qexport-btn" class="w-full bg-blue-100 text-blue-700 p-3 rounded-lg hover:bg-blue-200 transition">
+                    퀴즈 공유하기 (Qexport)
+                </button>
+                <button id="aexport-btn" class="w-full bg-indigo-100 text-indigo-700 p-3 rounded-lg hover:bg-indigo-200 transition">
+                    답지 공유하기 (Aexport)
                 </button>
              </div>
         </div>
-        
-        <!-- (신규) 3. 팝업 대기 섹션 (팝업 띄운 후 보임) --><div id="popup-waiting-section" class="p-6 md:p-10 text-center hidden">
-            <h2 id="popup-waiting-title" class="text-2xl font-bold text-gray-800 mb-4">퀴즈 진행 중...</h2>
-            <p class="text-gray-600 mb-6">퀴즈 팝업창에서 문제를 풀고 있습니다.</p>
-            
-            <div class="bg-blue-50 p-8 rounded-xl mb-6">
-                <svg class="w-16 h-16 text-blue-600 mx-auto animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <p class="text-lg text-blue-800 mt-4">팝업창이 닫히면 이곳에 결과가 표시됩니다.</p>
-            </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <button id="reopen-popup-btn" class="w-full bg-gray-600 text-white p-4 rounded-lg font-bold text-lg hover:bg-gray-700 transition">
-                    팝업 다시 띄우기
-                </button>
-                <button id="cancel-popup-btn" class="w-full bg-red-500 text-white p-4 rounded-lg font-bold text-lg hover:bg-red-600 transition">
-                    취소
-                </button>
-            </div>
-        </div>
-
-
-        <!-- 3. 퀴즈 풀기 섹션 (팝업창 내부 또는 단독 실행 시 보임) --><div id="quiz-section" class="p-6 md:p-8 hidden">
-            <!-- 퀴즈 상단 바 --><div class="flex justify-between items-center mb-6">
-                <span id="quiz-run-title" class="text-lg font-bold text-gray-800 hidden"></span> <!-- (신규) 퀴즈 풀기 화면 제목 --><span id="progress-text" class="text-lg font-semibold text-gray-700">문제 1 / 10</span>
+        <!-- 3. 퀴즈 풀기 섹션 (팝업 없음) -->
+        <div id="quiz-section" class="p-6 md:p-8 hidden">
+            <div class="flex justify-between items-center mb-6">
+                <span id="quiz-run-title" class="text-lg font-bold text-gray-800 hidden"></span>
+                <span id="progress-text" class="text-lg font-semibold text-gray-700">문제 1 / 10</span>
                 <button id="quit-quiz-btn" class="text-sm text-red-600 hover:text-red-800 font-medium">
                     처음으로
                 </button>
             </div>
-            
-            <!-- (수정) 타이머 표시 영역 --><div id="timer-container" class="flex justify-between items-center mb-4 hidden">
-                <span id="time-left-text" class="text-lg font-bold text-indigo-700">--:--</span> <!-- (수정) '남은 시간:' 텍스트 삭제 -->
+            <div id="timer-container" class="flex justify-between items-center mb-4 hidden">
+                <span id="time-left-text" class="text-lg font-bold text-indigo-700">--:--</span>
                 <div id="timer-bar-container">
                     <div id="timer-bar"></div>
                 </div>
             </div>
-
-
-            <!-- (신규) 퀴즈 내용 영역 - 왼쪽 (문제, SVG) / 오른쪽 (보기) --><div id="quiz-content-area" class="md:flex">
-                <!-- 왼쪽: 문제 및 SVG 참고자료 --><div id="quiz-question-area" class="mb-6 md:mb-0">
+            <div id="quiz-content-area" class="md:flex">
+                <div id="quiz-question-area" class="mb-6 md:mb-0">
                     <h2 id="question-title" class="text-2xl font-bold text-gray-900 mb-4"></h2>
-                    <div id="question-svg-container" class="my-5 flex justify-center hidden">
-                        <!-- JS가 이곳에 SVG를 삽입 --></div>
+                    <div id="question-svg-container" class="my-5 flex justify-center hidden"></div>
                 </div>
-                
-                <!-- 오른쪽: 보기 목록 --><div id="quiz-options-area">
-                    <!-- (수정) SVG <UL> 대신 HTML 버튼을 위한 DIV 사용 -->
-                    <!-- JS가 이곳에 HTML 보기 버튼을 삽입 -->
-                </div>
+                <div id="quiz-options-area"></div>
             </div>
-
-            <!-- 피드백 및 다음 버튼 --><div class="mt-6 border-t border-gray-200 pt-6">
+            <div class="mt-6 border-t border-gray-200 pt-6">
                 <p id="feedback-text" class="text-xl font-bold"></p>
                 <p id="explanation-text" class="mt-3 text-gray-700 bg-gray-100 p-4 rounded-md hidden"></p>
                 <button id="next-question-btn" class="w-full bg-blue-600 text-white p-4 rounded-lg font-bold text-lg hover:bg-blue-700 transition mt-4 hidden">
@@ -425,27 +390,91 @@
             </div>
         </div>
 
-        <!-- 4. 최종 결과 섹션 (퀴즈 종료 후 보임) --><div id="results-section" class="p-6 md:p-10 text-center hidden">
-            <h2 id="results-title" class="text-3xl font-bold text-gray-800 mb-4">퀴즈 완료!</h2> <!-- (수정) 퀴즈 결과 제목 --><p class="text-xl text-gray-600 mb-6">수고하셨습니다.</p>
-            
+        <!-- 4. 최종 결과 섹션 (메인창) -->
+        <div id="results-section" class="p-6 md:p-10 text-center hidden">
+            <h2 id="results-title" class="text-3xl font-bold text-gray-800 mb-4">퀴즈 완료!</h2>
+            <p class="text-xl text-gray-600 mb-6">수고하셨습니다.</p>
             <div class="bg-blue-50 p-8 rounded-xl">
                 <p class="text-lg text-blue-800">총 문제</p>
                 <p id="total-questions-result" class="text-4xl font-extrabold text-blue-900 mb-4"></p>
-                
                 <p class="text-lg text-blue-800">최종 점수</p>
                 <p id="final-score" class="text-6xl font-extrabold text-blue-900"></p>
             </div>
-
             <button id="restart-quiz-btn" class="w-full bg-blue-600 text-white p-4 rounded-lg font-bold text-lg hover:bg-blue-700 transition mt-8">
                 처음으로 돌아가기
             </button>
-
-            <!-- (신규) 틀린 문제 해설 섹션 -->
             <div id="wrong-answers-section" class="mt-10 text-left hidden">
                 <h3 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">틀린 문제 다시 보기</h3>
-                <div id="wrong-answers-list" class="space-y-6">
-                    <!-- JS가 이곳에 틀린 문제 해설을 삽입 -->
+                <div id="wrong-answers-list" class="space-y-6"></div>
+            </div>
+        </div>
+
+        <!-- 5. (신규) Qexport 섹션 -->
+        <div id="qexport-section" class="p-6 md:p-8 hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">퀴즈 공유 링크 생성</h2>
+            <p class="text-gray-600 mb-5">
+                링크를 받는 친구에게 보낼 메시지와 이름을 입력하세요.
+            </p>
+            <div class="space-y-4">
+                <div>
+                    <label for="qexport-name" class="block text-sm font-medium text-gray-700">보내는 사람 이름</label>
+                    <input type="text" id="qexport-name" class="mt-1 block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
                 </div>
+                <div>
+                    <label for="qexport-msg" class="block text-sm font-medium text-gray-700">친구에게 보낼 메시지</label>
+                    <textarea id="qexport-msg" rows="3" class="mt-1 block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="이 문제 한번 풀어봐!"></textarea>
+                </div>
+                <div>
+                    <button id="qexport-generate-btn" class="w-full bg-blue-600 text-white px-5 py-3 rounded-lg font-bold hover:bg-blue-700 transition">
+                        공유 링크 생성하기
+                    </button>
+                </div>
+                <div id="qexport-result-container" class="hidden">
+                    <label class="block text-sm font-medium text-gray-700">생성된 링크 (클릭하여 복사)</label>
+                    <input type="text" id="qexport-result-url" class="w-full p-3 border border-gray-300 rounded-lg bg-gray-100 cursor-pointer" readonly>
+                </div>
+            </div>
+             <button id="qexport-back-btn" class="w-full bg-gray-200 text-gray-700 p-3 rounded-lg hover:bg-gray-300 transition mt-6">
+                취소
+            </button>
+        </div>
+        
+        <!-- 6. (신규) Aexport 섹션 -->
+        <div id="aexport-section" class="p-6 md:p-8 hidden">
+            <h2 id="aexport-title" class="text-2xl font-bold text-gray-800 mb-4">답지 보기 / 인쇄</h2>
+            <p class="text-gray-600 mb-6">
+                퀴즈의 답지와 해설입니다.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <button id="aexport-print-btn" class="w-full bg-gray-700 text-white p-4 rounded-lg font-bold text-lg hover:bg-gray-800 transition">
+                    이 답지 인쇄하기
+                </button>
+                 <button id="aexport-back-btn" class="w-full bg-gray-200 text-gray-700 p-3 rounded-lg hover:bg-gray-300 transition">
+                    돌아가기
+                </button>
+            </div>
+            <!-- 답지 내용이 여기에 렌더링됨 -->
+            <div id="aexport-content" class="space-y-6"></div>
+        </div>
+
+        <!-- 7. (신규) Import 섹션 -->
+        <div id="import-section" class="p-6 md:p-10 text-center hidden">
+            <div class="bg-blue-50 p-8 rounded-xl">
+                <h2 id="import-name" class="text-3xl font-bold text-gray-800 mb-2"></h2>
+                <p class="text-xl text-gray-600 mb-6">님이 보낸 퀴즈입니다.</p>
+                <p id="import-msg" class="text-lg text-blue-800 bg-white p-4 rounded-md shadow-inner min-h-[50px]"></p>
+            </div>
+            
+            <div class="grid grid-cols-1 gap-4 mt-8">
+                <button id="import-start-btn" class="w-full bg-green-600 text-white p-4 rounded-lg font-bold text-lg hover:bg-green-700 transition">
+                    퀴즈 풀기
+                </button>
+                <button id="import-print-btn" class="w-full bg-gray-700 text-white p-4 rounded-lg font-bold text-lg hover:bg-gray-800 transition">
+                    인쇄하기
+                </button>
+                <button id="import-share-btn" class="w-full bg-blue-100 text-blue-700 p-3 rounded-lg hover:bg-blue-200 transition">
+                    이 퀴즈 재공유하기
+                </button>
             </div>
         </div>
 
@@ -456,10 +485,7 @@
       인쇄 전용 HTML 영역 (평소에는 안 보임)
       ======================================
     --><div id="printable-area" class="hidden">
-        <!-- 
-          JS가 이곳에 인쇄용 컨텐츠를 생성합니다
-          (1부: 문제지, 2부: 정답지)
-        --></div>
+        <!-- JS가 이곳에 인쇄용 컨텐츠를 생성합니다 --></div>
 
 
     <!-- 
@@ -468,71 +494,84 @@
       ======================================
     --><script>
         // --- 예제 JSON 데이터 (문자열 형태) ---
-        // (수정) totalTimeLimitSeconds (총 시간)으로 변경
+        // PDF의 5문제로 DEFAULT_QUIZ_JSON을 교체
         const DEFAULT_QUIZ_JSON = `
 {
-    "title": "기본 상식 퀴즈",
-    "totalTimeLimitSeconds": 60,
+    "title": "중학교 과학 심화 평가 (5, 6, 7단원 연계)",
+    "totalTimeLimitSeconds": 300,
     "questions": [
         {
-            "question": "다음 중 HTML(HyperText Markup Language)의 약자가 올바른 것은?",
+            "question": "볼록 렌즈를 이용하여 물체 A의 실상을 스크린에 맺었다. 물체 A를 렌즈의 초점거리(f)의 2배 지점(2f)에서 렌즈로부터 멀리 이동시켰을 때(여전히 실상이 맺히는 범위 내), 상의 변화로 옳은 것은?",
+            "svgImage": "<svg viewBox='0 0 200 60' xmlns='http://www.w3.org/2000/svg' class='w-full max-w-sm border rounded-md'><path d='M 10 30 H 190' stroke='gray' stroke-dasharray='4 2' /><path d='M 100 10 V 50' stroke='black' stroke-width='2' /><path d='M 100 10 Q 110 30 100 50' stroke='black' stroke-width='2' fill='none' /><path d='M 100 10 Q 90 30 100 50' stroke='black' stroke-width='2' fill='none' /><path d='M 50 25 V 30 H 48 L 50 25 L 52 30 H 50' stroke='black' stroke-width='1.5' fill='none' /><text x='50' y='22' text-anchor='middle' font-size='10'>A</text><text x='50' y='38' text-anchor='middle' font-size='10'>2f</text><text x='150' y='38' text-anchor='middle' font-size='10'>2f</text><text x='100' y='8' text-anchor='middle' font-size='10'>렌즈</text></svg>",
             "options": [
-                { "text": "Hyperlinks and Text Markup Language" },
-                { "text": "Home Tool Markup Language" },
-                { "text": "HyperText Markup Language" },
-                { "text": "Hyper Tool Multi Language" },
-                { "text": "HighText Machine Language" }
-            ],
-            "answerIndex": 2,
-            "explanation": "HTML은 'HyperText Markup Language'의 약자입니다. 웹 페이지의 구조를 정의하는 마크업 언어입니다."
-        },
-        {
-            "question": "다음은 텍스트가 매우 길어서 두 줄 이상으로 넘어가는 선지에 대한 테스트입니다. 이 텍스트는 자동으로 줄바꿈되어야 하며, 버튼의 높이도 그에 맞게 자동으로 늘어나야 합니다. 이 기능이 올바르게 작동하는지 확인해주세요.",
-            "options": [
-                { "text": "짧은 텍스트" },
-                { "text": "JQuery" },
-                { "text": "이것은 매우 긴 텍스트입니다. 이 텍스트는 버튼 밖으로 넘치지 않고 자동으로 줄바꿈(wrapping)되어 여러 줄에 걸쳐 표시되어야 합니다. HTML 요소는 이것이 가능합니다." },
-                { "text": "JavaScript" },
-                { "text": "CSS (정답)" }
-            ],
-            "answerIndex": 4,
-            "explanation": "CSS(Cascading Style Sheets)는 웹 페이지의 디자인을 담당합니다."
-        },
-        {
-            "question": "다음 보기 중 '둥근 사각형(Rounded Rectangle)'을 나타내는 SVG는 무엇인가요?",
-            "svgImage": "<svg viewBox='0 0 100 60' xmlns='http://www.w3.org/2000/svg' class='w-full max-w-xs border rounded-md'><rect x='10' y='10' width='80' height='40' rx='10' stroke='blue' stroke-width='3' fill='lightblue'/><text x='50' y='35' text-anchor='middle' font-size='10' fill='black'>질문 SVG</text></svg>",
-            "options": [
-                { "text": "원", "svgImage": "<svg viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'><circle cx='20' cy='20' r='18' stroke='black' stroke-width='2' fill='none'/></svg>" },
-                { "text": "일반 사각형", "svgImage": "<svg viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'><rect x='5' y='5' width='30' height='30' stroke='black' stroke-width='2' fill='none'/></svg>" },
-                { "text": "삼각형", "svgImage": "<svg viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'><polygon points='20,5 35,35 5,35' stroke='black' stroke-width='2' fill='none'/></svg>" },
-                { "text": "둥근 사각형", "svgImage": "<svg viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'><rect x='5' y='5' width='30' height='30' rx='8' stroke='black' stroke-width='2' fill='none'/></svg>" },
-                { "text": "타원", "svgImage": "<svg viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'><ellipse cx='20' cy='20' rx='18' ry='12' stroke='black' stroke-width='2' fill='none'/></svg>" }
-            ],
-            "answerIndex": 3,
-            "explanation": "정답은 4번째 보기입니다. <rect> 태그의 'rx' 속성은 모서리의 둥근 정도를 지정합니다."
-        },
-        {
-            "question": "다음 SVG 코드에 대한 설명으로 옳은 것은?",
-            "svgImage": "<svg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'><circle cx='50' cy='50' r='40' fill='red'/></svg>",
-            "options": [
-                { "text": "파란색 사각형을 그린다." },
-                { "text": "중심이 (50,50)인 반지름 40의 빨간색 원을 그린다." },
-                { "text": "타원을 그린다." },
-                { "text": "텍스트를 표시한다." },
-                { "text": "선을 그린다." }
+                { "text": "실상의 크기는 커지고, 렌즈로부터 멀어진다." },
+                { "text": "실상의 크기는 작아지고, 렌즈에 가까워진다." },
+                { "text": "실상의 크기는 변하지 않고, 렌즈에 가까워진다." },
+                { "text": "실상의 크기는 작아지고, 렌즈로부터 멀어진다." },
+                { "text": "실상의 크기는 커지고, 렌즈에 가까워진다." }
             ],
             "answerIndex": 1,
-            "explanation": "<circle> 태그는 원을, cx/cy는 중심 좌표, r은 반지름, fill은 색상을 나타냅니다."
+            "explanation": "볼록 렌즈에서 물체가 2f(초점거리의 2배)보다 멀어지면, 실상은 렌즈 반대편의 f와 2f 사이(렌즈에 가까워짐)에 맺히며 그 크기는 물체보다 작아집니다."
+        },
+        {
+            "question": "질량 2kg인 물체가 직선 운동을 한다. 0초부터 4초까지의 속도-시간 그래프가 오른쪽과 같을 때, 0초부터 4초까지 물체에 작용한 알짜힘의 평균 크기(N)는?",
+            "svgImage": "<svg viewBox='0 0 100 70' xmlns='http://www.w3.org/2000/svg' class='w-full max-w-xs border rounded-md'><path d='M 10 60 H 90 M 10 60 V 10' stroke='black' stroke-width='1' /><text x='5' y='15' font-size='8'>속도(m/s)</text><text x='85' y='65' font-size='8'>시간(s)</text><path d='M 10 58 L 10 60' stroke='black' stroke-width='1' /><text x='10' y='68' text-anchor='middle' font-size='8'>0</text><path d='M 50 58 L 50 60' stroke='black' stroke-width='1' /><text x='50' y='68' text-anchor='middle' font-size='8'>2</text><path d='M 80 58 L 80 60' stroke='black' stroke-width='1' /><text x='80' y='68' text-anchor='middle' font-size='8'>4</text><path d='M 10 20 L 12 20' stroke='black' stroke-width='1' /><text x='7' y='23' text-anchor='end' font-size='8'>4</text><path d='M 10 20 H 50' stroke='gray' stroke-dasharray='2 2' /><path d='M 50 20 V 60' stroke='gray' stroke-dasharray='2 2' /><path d='M 80 20 V 60' stroke='gray' stroke-dasharray='2 2' /><path d='M 10 60 L 50 20 L 80 20' stroke='red' stroke-width='2' fill='none'/></svg>",
+            "options": [
+                { "text": "0 N" },
+                { "text": "1 N" },
+                { "text": "2 N" },
+                { "text": "3 N" },
+                { "text": "4 N" }
+            ],
+            "answerIndex": 2,
+            "explanation": "평균 알짜힘 F = m * a (질량 * 평균 가속도). 평균 가속도 a = (나중 속도 - 처음 속도) / (총 시간) = (4 m/s - 0 m/s) / 4s = 1 m/s². 따라서 F = 2kg * 1 m/s² = 2 N 입니다."
+        },
+        {
+            "question": "원소 A는 3주기 1족, 원소 B는 2주기 17족이다. 이 두 원소가 결합하여 생성된 화합물 AB에 대한 설명으로 옳지 않은 것은?",
+            "options": [
+                { "text": "화합물 AB는 이온 결합 물질이다." },
+                { "text": "A는 양이온이 되기 쉽고, B는 음이온이 되기 쉽다." },
+                { "text": "화합물 AB는 상온에서 단단한 고체 상태로 존재한다." },
+                { "text": "화합물 AB는 수용액 상태에서 전기 전도성이 없다." },
+                { "text": "A 원소는 전자를 1개 잃고, B 원소는 전자를 1개 얻어 안정한 전자 배치를 이룬다." }
+            ],
+            "answerIndex": 3,
+            "explanation": "A는 3주기 1족(예: 나트륨, Na)이고 B는 2주기 17족(예: 플루오린, F)이므로, 금속과 비금속의 결합인 이온 결합 물질(예: NaF)을 형성합니다. 이온 결합 물질은 고체에서 전기가 통하지 않지만, 물에 녹아 이온화되면(수용액 상태) 전기 전도성이 있습니다."
+        },
+        {
+            "question": "다음 두 화학 반응과 관련된 에너지 변화에 대한 심화 분석으로 옳은 것을 모두 고른 것은? (단, 모든 반응은 표준 상태에서 진행된다.) [반응 1] 2H₂(g) + O₂(g) → 2H₂O(l) + Q₁ (Q₁>0) [반응 2] CaCO₃(s) + Q₂ → CaO(s) + CO₂(g) (Q₂>0)",
+            "options": [
+                { "text": "ㄱ" },
+                { "text": "ㄴ" },
+                { "text": "ㄱ, ㄴ" },
+                { "text": "ㄴ, ㄷ" },
+                { "text": "ㄱ, ㄴ, ㄷ" }
+            ],
+            "answerIndex": 2,
+            "explanation": "ㄱ: Q₁>0은 반응 시 열(Q₁)이 방출된다는 뜻이므로 발열 반응입니다. 발열 반응에서는 생성물의 에너지 총합이 반응물보다 낮아 더 안정합니다. (옳음) ㄴ: Q₂>0은 반응 시 열(Q₂)이 흡수된다는 뜻이므로 흡열 반응입니다. 흡열 반응은 외부에서 에너지를 공급받아야 일어납니다. (옳음) ㄷ: 반응 1의 역반응(물의 전기분해)은 에너지를 흡수하는 흡열 반응입니다. 반응 2의 역반응은 에너지를 방출하는 발열 반응입니다. (틀림)"
+        },
+        {
+            "question": "해양판이 대륙판 아래로 섭입하는 수렴형 경계(섭입대) 근처에서, 일부 지역에서 지진파의 속도가 주변 맨틀보다 비정상적으로 빠르게 측정되는 현상이 관찰되었다. 이 현상으로부터 추론할 수 있는 지하 구조에 대한 설명으로 가장 적절한 것은?",
+            "svgImage": "<svg viewBox='0 0 150 70' xmlns='http://www.w3.org/2000/svg' class='w-full max-w-sm border rounded-md'><rect x='0' y='20' width='100' height='50' fill='#aaccff' /><text x='50' y='45' text-anchor='middle' font-size='10' fill='black'>해양판</text><path d='M 80 20 L 120 60 L 150 60 L 150 20 Z' fill='#d2b48c' /><text x='125' y='40' text-anchor='middle' font-size='10' fill='black'>대륙판</text><path d='M 100 20 L 115 35' stroke='black' stroke-width='2' /><text x='107' y='18' font-size='8'>섭입대</text><rect x='80' y='50' width='50' height='20' fill='#ffcc88' opacity='0.7' /><text x='105' y='62' font-size='8' fill='red'>고속도대(빠름)</text><text x='30' y='62' font-size='8'>주변 맨틀(느림)</text></svg>",
+            "options": [
+                { "text": "섭입된 판 주변은 주변 맨틀보다 밀도가 높고 온도가 낮아 지진파의 속도가 증가하는 고속도대가 형성된다." },
+                { "text": "섭입된 판 주변은 마그마 활동으로 인해 온도가 높아져 지진파의 속도가 감소하는 저속도대가 형성된다." },
+                { "text": "판이 침강하면서 상부 맨틀과의 마찰이 심해져 P파와 S파의 속도 차이가 급격히 줄어든다." },
+                { "text": "섭입대 하부에서는 핵과의 경계가 가까워져 지진파가 액체 상태의 외핵을 통과하게 된다." },
+                { "text": "지진파의 속도 증가는 판의 경계가 확장하는 발산형 경계에서 주로 나타나는 현상이다." }
+            ],
+            "answerIndex": 0,
+            "explanation": "섭입하는 해양판은 차갑고 밀도가 높습니다. 반면 주변의 맨틀은 뜨겁고 상대적으로 밀도가 낮습니다. 지진파는 차갑고 밀도가 높은 물질을 더 빠르게 통과하므로, 섭입하는 판은 '고속도대(High-velocity zone)'를 형성합니다. (저속도대는 주로 맨틀이 부분적으로 녹아있는 연약권 등에서 나타납니다.)"
         }
     ]
 }
 `;
 
         // --- 전역 변수 및 상태 ---
-        let db; // (신규) IndexedDB 인스턴스
+        let db;
         const DB_NAME = 'QuizAppDB';
         const STORE_NAME = 'Quizzes';
-        const QUIZ_ID_KEY = 'currentQuizData'; // (신규) DB에 저장할 퀴즈의 키
+        const DB_STATE_KEY = 'appState'; // (수정) DB에 저장할 상태 키
 
         let currentQuiz = {}; 
         let currentQuestionIndex = 0;
@@ -541,12 +580,9 @@
         let timerInterval; 
         let timeLeft; 
         let wrongAnswers = []; 
-        
-        let quizPopup; // (신규) 팝업창 참조
-        let popupCheckInterval; // (신규) 팝업 닫힘 감지 인터벌
 
         // --- DOM 요소 가져오기 ---
-        const appContainer = document.getElementById('app-container'); // (신규) 앱 전체 컨테이너
+        const appContainer = document.getElementById('app-container');
         const jsonInputSection = document.getElementById('json-input-section'); 
         const jsonInput = document.getElementById('json-input');
         const jsonError = document.getElementById('json-error');
@@ -561,17 +597,20 @@
         const questionCount = document.getElementById('question-count');
         const timerSettingDisplay = document.getElementById('timer-setting-display'); 
         
+        const mainActionsContainer = document.getElementById('main-actions-container');
         const startQuizBtn = document.getElementById('start-quiz-btn');
-        const printButtonsContainer = document.getElementById('print-buttons-container'); // (신규)
+        const printButtonsContainer = document.getElementById('print-buttons-container');
         const printQuestionsBtn = document.getElementById('print-questions-btn');
         const printAnswersBtn = document.getElementById('print-answers-btn');
-        const editorButtonsContainer = document.getElementById('editor-buttons-container'); // (신규)
+        const editorButtonsContainer = document.getElementById('editor-buttons-container');
         const backToJsonBtn = document.getElementById('back-to-json-btn');
-        const shareLinkBtn = document.getElementById('share-link-btn'); 
+        const qexportBtn = document.getElementById('qexport-btn');
+        const aexportBtn = document.getElementById('aexport-btn');
         
-        const popupWaitingSection = document.getElementById('popup-waiting-section'); // (신규) 팝업 대기
-        const reopenPopupBtn = document.getElementById('reopen-popup-btn'); // (신규)
-        const cancelPopupBtn = document.getElementById('cancel-popup-btn'); // (신규)
+        // 팝업 관련 UI 제거
+        // const popupWaitingSection = document.getElementById('popup-waiting-section');
+        // const reopenPopupBtn = document.getElementById('reopen-popup-btn');
+        // const cancelPopupBtn = document.getElementById('cancel-popup-btn');
 
         const quizSection = document.getElementById('quiz-section');
         const quizRunTitle = document.getElementById('quiz-run-title'); 
@@ -584,7 +623,7 @@
         
         const questionTitle = document.getElementById('question-title');
         const svgContainer = document.getElementById('question-svg-container');
-        const optionsArea = document.getElementById('quiz-options-area'); // (수정) optionsList -> optionsArea
+        const optionsArea = document.getElementById('quiz-options-area');
         
         const feedbackText = document.getElementById('feedback-text');
         const explanationText = document.getElementById('explanation-text');
@@ -599,27 +638,45 @@
         const wrongAnswersList = document.getElementById('wrong-answers-list'); 
 
         const printableArea = document.getElementById('printable-area');
+        
+        const qexportSection = document.getElementById('qexport-section');
+        const qexportName = document.getElementById('qexport-name');
+        const qexportMsg = document.getElementById('qexport-msg');
+        const qexportGenerateBtn = document.getElementById('qexport-generate-btn');
+        const qexportResultContainer = document.getElementById('qexport-result-container');
+        const qexportResultUrl = document.getElementById('qexport-result-url');
+        const qexportBackBtn = document.getElementById('qexport-back-btn');
 
-        // --- (신규) IndexedDB 헬퍼 함수 ---
+        const aexportSection = document.getElementById('aexport-section');
+        const aexportTitle = document.getElementById('aexport-title');
+        const aexportPrintBtn = document.getElementById('aexport-print-btn');
+        const aexportBackBtn = document.getElementById('aexport-back-btn');
+        const aexportContent = document.getElementById('aexport-content');
 
-        /** DB 초기화 */
+        const importSection = document.getElementById('import-section');
+        const importName = document.getElementById('import-name');
+        const importMsg = document.getElementById('import-msg');
+        const importStartBtn = document.getElementById('import-start-btn');
+        const importPrintBtn = document.getElementById('import-print-btn');
+        const importShareBtn = document.getElementById('import-share-btn');
+
+
+        // --- IndexedDB 헬퍼 함수 ---
+
         function initDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open(DB_NAME, 1);
-                
                 request.onupgradeneeded = (event) => {
                     const db = event.target.result;
                     if (!db.objectStoreNames.contains(STORE_NAME)) {
                         db.createObjectStore(STORE_NAME, { keyPath: 'id' });
                     }
                 };
-                
                 request.onsuccess = (event) => {
                     db = event.target.result;
                     console.log("IndexedDB initialized");
                     resolve(db);
                 };
-                
                 request.onerror = (event) => {
                     console.error("IndexedDB error:", event.target.errorCode);
                     reject(event.target.errorCode);
@@ -627,126 +684,93 @@
             });
         }
 
-        /** DB에 퀴즈 저장 */
-        function saveQuizToDB(id, data) {
+        function saveStateToDB(id, state) { // (수정) state 객체 저장
             return new Promise((resolve, reject) => {
-                if (!db) {
-                    console.error("DB not initialized.");
-                    reject("DB not initialized");
-                    return;
-                }
+                if (!db) return reject("DB not initialized");
                 try {
                     const transaction = db.transaction([STORE_NAME], 'readwrite');
                     const store = transaction.objectStore(STORE_NAME);
-                    const request = store.put({ id: id, data: data });
-                    
+                    const request = store.put({ id: id, ...state }); // id와 state 내용 spread
                     request.onsuccess = () => resolve();
                     request.onerror = (event) => reject(event.target.error);
-                } catch (error) {
-                    reject(error);
-                }
+                } catch (error) { reject(error); }
             });
         }
 
-        /** DB에서 퀴즈 로드 */
-        function loadQuizFromDB(id) {
+        function loadStateFromDB(id) { // (수정) state 객체 로드
             return new Promise((resolve, reject) => {
-                if (!db) {
-                    console.error("DB not initialized.");
-                    reject("DB not initialized");
-                    return;
-                }
+                if (!db) return reject("DB not initialized");
                 try {
                     const transaction = db.transaction([STORE_NAME], 'readonly');
                     const store = transaction.objectStore(STORE_NAME);
                     const request = store.get(id);
-                    
                     request.onsuccess = (event) => {
-                        if (event.target.result) {
-                            resolve(event.target.result.data);
-                        } else {
-                            reject("Quiz not found in DB");
-                        }
+                        if (event.target.result) resolve(event.target.result); // id 포함 객체 전체 반환
+                        else reject("State not found in DB");
                     };
                     request.onerror = (event) => reject(event.target.error);
-                } catch (error) {
-                    reject(error);
-                }
+                } catch (error) { reject(error); }
             });
         }
 
-        /** DB에서 퀴즈 삭제 */
-        function deleteQuizFromDB(id) {
+        function deleteStateFromDB(id) { // (수정) state 삭제
             return new Promise((resolve, reject) => {
-                if (!db) {
-                    console.log("DB not initialized, nothing to delete.");
-                    resolve(); // DB가 없으면 삭제할 것도 없음
-                    return;
-                }
+                if (!db) return resolve();
                 try {
                     const transaction = db.transaction([STORE_NAME], 'readwrite');
                     const store = transaction.objectStore(STORE_NAME);
                     const request = store.delete(id);
-                    
                     request.onsuccess = () => resolve();
                     request.onerror = (event) => reject(event.target.error);
-                } catch (error) {
-                    reject(error);
+                } catch (error) { reject(error); }
+            });
+        }
+
+
+        // --- UI 섹션 표시 헬퍼 ---
+        function showSection(sectionId) {
+            [jsonInputSection, actionControls, quizSection, resultsSection, qexportSection, aexportSection, importSection].forEach(section => {
+                if (!section) return; // (안전 코드) 팝업 UI 제거로 인한 null 방지
+                if (section.id === sectionId) {
+                    section.classList.remove('hidden');
+                } else {
+                    section.classList.add('hidden');
                 }
             });
+            // 팝업 대기 섹션은 항상 숨김 (제거됨)
+            if (popupWaitingSection) popupWaitingSection.classList.add('hidden');
         }
 
 
         // --- 함수 정의 ---
 
-        /** 1. JSON 불러오기 및 유효성 검사 (수정: iframe 모드 UI 처리) */
-        function loadJsonData() {
+        /** 1. JSON 불러오기 및 유효성 검사 */
+        function loadJsonData(mode = null) { // (수정) mode 파라미터 받기
             try {
                 const rawJson = jsonInput.value;
                 const parsedData = JSON.parse(rawJson); 
 
-                
                 if (typeof parsedData !== 'object' || parsedData === null || !Array.isArray(parsedData.questions)) {
                     throw new Error("JSON 데이터는 최상위 객체여야 하며, 'questions' 배열을 포함해야 합니다.");
                 }
-
                 if (parsedData.questions.length === 0) {
                     throw new Error("'questions' 배열은 비어있지 않아야 합니다.");
                 }
-                
-                
                 if (parsedData.title && typeof parsedData.title !== 'string') {
-                    throw new Error("JSON의 'title' 속성은 문자열(string)이어야 합니다.");
+                    throw new Error("'title' 속성은 문자열(string)이어야 합니다.");
                 }
-
-                
                 if (parsedData.totalTimeLimitSeconds && typeof parsedData.totalTimeLimitSeconds !== 'number') {
-                    throw new Error("JSON의 'totalTimeLimitSeconds' 속성은 숫자(number)여야 합니다.");
-                }
-                if (parsedData.totalTimeLimitSeconds && parsedData.totalTimeLimitSeconds <= 0) {
-                    throw new Error("JSON의 'totalTimeLimitSeconds'은 0보다 큰 숫자여야 합니다.");
+                    throw new Error("'totalTimeLimitSeconds' 속성은 숫자(number)여야 합니다.");
                 }
 
-
-                // 각 문제의 형식 검사 (parsedData.questions 배열 순회)
                 for (const item of parsedData.questions) {
                     if (!item.question || !Array.isArray(item.options) || item.options.length === 0 || typeof item.answerIndex !== 'number') {
-                        throw new Error("JSON 형식이 올바르지 않습니다. 각 문제는 'question', 'options' 배열, 'answerIndex' 숫자가 필요합니다.");
+                        throw new Error("JSON 형식이 올바르지 않습니다. (question, options, answerIndex 필요)");
                     }
-                    
                     for (const opt of item.options) {
                         if (typeof opt !== 'object' || opt === null || typeof opt.text !== 'string') {
                             throw new Error("각 'options' 항목은 'text' 속성을 가진 객체(object)여야 합니다.");
                         }
-                        if (opt.svgImage && typeof opt.svgImage !== 'string') {
-                            throw new Error("options의 'svgImage' 속성이 존재한다면, 문자열(string)이어야 합니다.");
-                        }
-                    }
-                    if (item.svgImage && typeof item.svgImage !== 'string') {
-                        throw new Error("'svgImage' 속성이 존재한다면, 문자열(string)이어야 합니다.");
-                    }
-                    if (item.explanation && typeof item.explanation !== 'string') {
-                        throw new Error("'explanation' 속성이 존재한다면, 문자열(string)이어야 합니다.");
                     }
                 }
 
@@ -754,18 +778,14 @@
                 currentQuiz = parsedData; 
                 jsonError.classList.add('hidden');
                 
-                // 컨트롤 버튼 표시
                 questionCount.textContent = currentQuiz.questions.length; 
                 loadStatus.classList.remove('hidden'); 
                 
-                
                 quizTitleDisplay.textContent = currentQuiz.title || "제목 없는 퀴즈";
-                
                 resultsTitle.textContent = currentQuiz.title ? `${currentQuiz.title} 퀴즈 완료!` : "퀴즈 완료!";
                 quizRunTitle.textContent = currentQuiz.title || "퀴즈 풀기";
                 quizRunTitle.classList.remove('hidden');
 
-                
                 if (currentQuiz.totalTimeLimitSeconds) {
                     const minutes = Math.floor(currentQuiz.totalTimeLimitSeconds / 60);
                     const seconds = currentQuiz.totalTimeLimitSeconds % 60;
@@ -775,16 +795,13 @@
                     timerSettingDisplay.classList.add('hidden');
                 }
 
-                actionControls.classList.remove('hidden'); 
+                showSection('action-controls');
                 
-                // (신규) Iframe 모드에 따라 버튼 숨기기
-                const params = new URLSearchParams(window.location.search);
-                const iframeMode = params.get('iframe');
-                
-                if (iframeMode === '1') { // 퀴즈 풀기만
+                // (수정) mode 값에 따라 버튼 숨기기
+                if (mode === 'Quiz') { // 퀴즈 풀기만
                     printButtonsContainer.classList.add('hidden');
                     editorButtonsContainer.classList.add('hidden');
-                } else if (iframeMode === '2') { // 인쇄만
+                } else if (mode === 'Print') { // 인쇄만
                     startQuizBtn.classList.add('hidden');
                     editorButtonsContainer.classList.add('hidden');
                 } else { // 0 또는 없음 (모두 표시)
@@ -792,29 +809,18 @@
                     printButtonsContainer.classList.remove('hidden');
                     editorButtonsContainer.classList.remove('hidden');
                 }
-
                 
-                if (window.opener) { // 팝업창이면 수정/공유 버튼 숨김
-                    backToJsonBtn.classList.add('hidden');
-                    shareLinkBtn.classList.add('hidden');
-                }
-                
-                // 다른 섹션 숨기기
-                quizSection.classList.add('hidden');
-                resultsSection.classList.add('hidden');
-                jsonInputSection.classList.add('hidden'); 
+                // 팝업 로직 제거
 
             } catch (error) {
-                // 실패
                 currentQuiz = {}; 
                 jsonError.textContent = `JSON 오류: ${error.message}`;
                 jsonError.classList.remove('hidden');
-                actionControls.classList.add('hidden'); 
-                jsonInputSection.classList.remove('hidden'); 
+                showSection('json-input-section');
             }
         }
 
-        /** 타이머 표시 헬퍼 함수 (MM:SS 형식) */
+        /** 타이머 표시 헬퍼 (MM:SS) */
         function updateTimerDisplay() {
             const minutes = Math.floor(timeLeft / 60);
             const seconds = timeLeft % 60;
@@ -824,43 +830,34 @@
         }
 
 
-        /** 2. 퀴즈 시작 (수정: iframe=1일 때 '처음으로' 숨기기) */
+        /** 2. 퀴즈 시작 (팝업 없음) */
         function startQuiz() {
             currentQuestionIndex = 0;
             score = 0;
             wrongAnswers = []; 
             
-            actionControls.classList.add('hidden'); 
-            resultsSection.classList.add('hidden');
-            jsonInputSection.classList.add('hidden');
-            quizSection.classList.remove('hidden');
+            showSection('quiz-section');
 
-            // (신규) iframe=1일 때 '처음으로' 버튼 숨기기
+            // (수정) ?mode=Quiz 일 때 '처음으로' 버튼 숨기기
             const params = new URLSearchParams(window.location.search);
-            const iframeMode = params.get('iframe');
-            if (iframeMode === '1') {
-                if (quitQuizBtn) {
-                    quitQuizBtn.classList.add('hidden');
-                }
+            const mode = params.get('mode');
+            if (mode === 'Quiz') {
+                if (quitQuizBtn) quitQuizBtn.classList.add('hidden');
+            } else {
+                 if (quitQuizBtn) quitQuizBtn.classList.remove('hidden');
             }
             
-            // 앱 컨테이너 스타일 변경 (팝업이므로 최대 너비 제거)
-            if (window.opener) {
-                 appContainer.classList.remove('max-w-5xl', 'mx-auto', 'shadow-2xl', 'rounded-xl', 'overflow-hidden');
-            }
+            // 팝업 로직 제거
             
-            
-            clearInterval(timerInterval); // 이전 타이머 초기화
+            clearInterval(timerInterval);
             if (currentQuiz.totalTimeLimitSeconds) {
                 timeLeft = currentQuiz.totalTimeLimitSeconds;
                 timerContainer.classList.remove('hidden');
                 updateTimerDisplay();
                 
                 if (timerBar) {
-                    timerBar.style.transition = 'none'; // 애니메이션 초기화
+                    timerBar.style.transition = 'none';
                     timerBar.style.width = '100%';
-                    
-                    
                     setTimeout(() => {
                         timerBar.style.transition = `width ${timeLeft}s linear`;
                         timerBar.style.width = '0%';
@@ -870,10 +867,9 @@
                 timerInterval = setInterval(() => {
                     timeLeft--;
                     updateTimerDisplay();
-                    
                     if (timeLeft <= 0) {
                         clearInterval(timerInterval);
-                        showResults(true); // 시간 초과로 결과 표시
+                        showResults(true); // 시간 초과
                     }
                 }, 1000);
             } else {
@@ -883,9 +879,8 @@
             loadQuestion();
         }
 
-        /** 3. 문제 불러오기 (수정: HTML 보기 버튼) */
+        /** 3. 문제 불러오기 (HTML 보기 버튼) */
         function loadQuestion() {
-            // 초기화
             isAnswered = false;
             feedbackText.textContent = '';
             explanationText.textContent = '';
@@ -905,25 +900,20 @@
                 svgContainer.classList.add('hidden');
             }
 
-            // (수정) 보기 버튼을 HTML로 생성
             optionsArea.innerHTML = '';
-
             currentQuestion.options.forEach((option, index) => {
                 const button = document.createElement('button');
                 button.className = 'html-option';
                 
-                // 1. 텍스트 컨텐츠
                 const contentDiv = document.createElement('div');
                 contentDiv.className = 'option-content';
                 contentDiv.textContent = `(${index + 1}) ${option.text}`;
                 button.appendChild(contentDiv);
 
-                // 2. SVG 이미지 (있을 경우)
                 if (option.svgImage) {
                     const svgWrapper = document.createElement('div');
                     svgWrapper.className = 'option-svg-wrapper';
                     svgWrapper.innerHTML = option.svgImage;
-                    
                     const embeddedSvg = svgWrapper.querySelector('svg');
                     if (embeddedSvg) {
                         embeddedSvg.setAttribute('width', '100%');
@@ -933,136 +923,91 @@
                 }
                 
                 button.addEventListener('click', () => selectAnswer(button, index));
-                
                 optionsArea.appendChild(button);
             });
         }
 
-        /** 4. 답안 선택 (수정: HTML 보기 버튼 + 타이머 일시 정지) */
+        /** 4. 답안 선택 (타이머 일시 정지) */
         function selectAnswer(selectedButton, selectedIndex) {
             if (isAnswered) return;
             
-            
             clearInterval(timerInterval); 
-            
             
             if(currentQuiz.totalTimeLimitSeconds && timerBar && timerBarContainer) {
                 try {
                     const currentWidth = timerBar.getBoundingClientRect().width;
                     const containerWidth = timerBarContainer.getBoundingClientRect().width;
                     timerBar.style.transition = 'none';
-
-                    
                     if (containerWidth > 0) {
                         timerBar.style.width = `${(currentWidth / containerWidth) * 100}%`;
-                    } else if (timeLeft <= 0) {
-                         timerBar.style.width = '0%'; // 시간이 다 된 경우
                     }
-                } catch(e) {
-                    console.warn("Timer bar pause failed:", e.message);
-                }
+                } catch(e) { console.warn("Timer bar pause failed:", e.message); }
             }
 
             isAnswered = true;
             const currentQuestion = currentQuiz.questions[currentQuestionIndex]; 
             const correctIndex = currentQuestion.answerIndex;
-
             const allOptionButtons = optionsArea.querySelectorAll('.html-option');
             
             if (selectedIndex === correctIndex) {
-                // 정답
                 score++;
                 selectedButton.setAttribute('data-state', 'correct');
                 feedbackText.textContent = '🎉 정답입니다!';
                 feedbackText.style.color = 'green';
             } else {
-                // 오답
                 wrongAnswers.push(currentQuestionIndex); 
                 selectedButton.setAttribute('data-state', 'wrong');
                 feedbackText.textContent = '❌ 틀렸습니다.';
                 feedbackText.style.color = 'red';
             }
 
-            // 정답 표시
             const correctButton = allOptionButtons[correctIndex];
-            if (correctButton) {
-                correctButton.setAttribute('data-state', 'correct');
-            }
-
-
+            if (correctButton) correctButton.setAttribute('data-state', 'correct');
+            
             if (currentQuestion.explanation) {
                 explanationText.textContent = `풀이: ${currentQuestion.explanation}`;
                 explanationText.classList.remove('hidden');
             }
 
             nextQuestionBtn.classList.remove('hidden');
-            allOptionButtons.forEach(button => {
-                button.disabled = true;
-            });
+            allOptionButtons.forEach(button => button.disabled = true);
         }
 
-        /** 5. 다음 문제로 이동 (수정: 타이머 재시작) */
+        /** 5. 다음 문제로 이동 (타이머 재시작) */
         function goToNextQuestion() {
             currentQuestionIndex++;
             if (currentQuestionIndex < currentQuiz.questions.length) { 
-                
-                
                 if (currentQuiz.totalTimeLimitSeconds && timeLeft > 0) {
-                    updateTimerDisplay(); // 현재 남은 시간으로 텍스트 업데이트
-                    
+                    updateTimerDisplay();
                     if (timerBar) {
-                        timerBar.style.transition = 'none'; // 애니메이션 초기화
-                        
+                        timerBar.style.transition = 'none';
                         setTimeout(() => {
                             timerBar.style.transition = `width ${timeLeft}s linear`;
                             timerBar.style.width = '0%';
                         }, 100);
                     }
-
                     timerInterval = setInterval(() => {
                         timeLeft--;
                         updateTimerDisplay();
-                        
                         if (timeLeft <= 0) {
                             clearInterval(timerInterval);
                             showResults(true); // 시간 초과
                         }
                     }, 1000);
                 }
-                
                 loadQuestion();
             } else {
                 showResults(false); // 시간 초과 아님
-                
             }
         }
 
-        /** 6. 결과 화면 표시 (수정: 팝업창에서 postMessage) */
+        /** 6. 결과 화면 표시 (팝업 로직 제거) */
         function showResults(isTimeOut = false) {
             clearInterval(timerInterval); 
             
-            // (신규) 팝업창(window.opener)에서 실행된 경우
-            if (window.opener) {
-                // 1. 메인창으로 결과 데이터 전송
-                window.opener.postMessage({
-                    type: 'quizResult',
-                    payload: {
-                        score: score,
-                        totalQuestions: currentQuiz.questions.length,
-                        wrongAnswers: wrongAnswers,
-                        quizData: currentQuiz, // 퀴즈 원본 데이터
-                        isTimeOut: isTimeOut
-                    }
-                }, '*'); // 실제 환경에서는 '*' 대신 메인창의 origin을 지정하는 것이 좋습니다.
-                
-                // 2. 팝업창 닫기
-                window.close();
-                return; // 팝업창에서는 결과 화면을 띄우지 않음
-            }
-
-            // (기존) 메인창에서 단독 실행된 경우 (예: 팝업이 차단됐을 때)
-            quizSection.classList.add('hidden');
-            resultsSection.classList.remove('hidden');
+            // 팝업 로직 제거됨
+            
+            showSection('results-section');
             
             const title = currentQuiz.title || "퀴즈";
             if (isTimeOut) {
@@ -1073,38 +1018,33 @@
             
             totalQuestionsResult.textContent = `${currentQuiz.questions.length} 문제`; 
             finalScore.textContent = `${score} 개`;
-
-            
             renderWrongAnswers(currentQuiz, wrongAnswers);
         }
 
-        /** (신규) 틀린 문제 해설 렌더링 함수 (재사용) */
+        /** 틀린 문제 해설 렌더링 (재사용) */
         function renderWrongAnswers(quizData, wrongIdxArray) {
-            wrongAnswersList.innerHTML = ''; // 초기화
+            wrongAnswersList.innerHTML = ''; 
             if (wrongIdxArray.length > 0) {
                 wrongAnswersSection.classList.remove('hidden');
                 
                 wrongIdxArray.forEach(wrongIndex => {
                     const question = quizData.questions[wrongIndex];
-                    if (!question) return; // 안전 코드
+                    if (!question) return;
                     
                     const itemDiv = document.createElement('div');
                     itemDiv.className = 'p-4 bg-gray-50 rounded-lg border border-gray-200';
                     
-                    // 1. 문제
                     const qTitle = document.createElement('h4');
                     qTitle.className = 'text-lg font-bold text-gray-800 mb-2';
                     qTitle.textContent = `[문제 ${wrongIndex + 1}] ${question.question}`;
                     itemDiv.appendChild(qTitle);
                     
-                    // 2. 정답
                     const answer = document.createElement('p');
                     answer.className = 'text-md font-semibold text-green-700';
                     const correctOptionText = question.options[question.answerIndex].text;
                     answer.textContent = `정답: (${question.answerIndex + 1}) ${correctOptionText}`;
                     itemDiv.appendChild(answer);
                     
-                    // 3. 해설
                     if (question.explanation) {
                         const explanation = document.createElement('p');
                         explanation.className = 'text-md text-gray-700 mt-2 pt-2 border-t border-gray-200';
@@ -1116,29 +1056,80 @@
                 });
 
             } else {
-                // 틀린 문제가 없으면
+                wrongAnswersList.innerHTML = '';
                 wrongAnswersSection.classList.add('hidden');
-                const noWrongMsg = document.createElement('p');
-                noWrongMsg.className = "text-green-600 font-bold text-center text-lg";
-                noWrongMsg.textContent = "🎉 모든 문제를 맞혔습니다! 🎉";
-                wrongAnswersList.appendChild(noWrongMsg);
-                wrongAnswersSection.classList.remove('hidden');
+                if (resultsSection.contains(wrongAnswersList)) {
+                     const noWrongMsg = document.createElement('p');
+                     noWrongMsg.className = "text-green-600 font-bold text-center text-lg";
+                     noWrongMsg.textContent = "🎉 모든 문제를 맞혔습니다! 🎉";
+                     wrongAnswersList.appendChild(noWrongMsg);
+                     wrongAnswersSection.classList.remove('hidden');
+                }
             }
+        }
+        
+        /** 답지 데이터 렌더링 (Aexport용) */
+        function renderAnswersOnly(quizData) {
+            aexportContent.innerHTML = '';
+            aexportTitle.textContent = (quizData.title ? `${quizData.title} ` : "") + '정답 및 풀이';
+
+            const quickKeyTitle = document.createElement('h3');
+            quickKeyTitle.className = 'text-xl font-bold text-gray-800 mb-2 border-b pb-2';
+            quickKeyTitle.textContent = '빠른 정답';
+            aexportContent.appendChild(quickKeyTitle);
+
+            const quickKeyContainer = document.createElement('div');
+            quickKeyContainer.className = 'flex flex-wrap gap-x-4 gap-y-2 mb-6';
+            
+            quizData.questions.forEach((question, index) => {
+                const keyItem = document.createElement('span');
+                keyItem.className = 'font-bold text-gray-700 text-lg';
+                keyItem.textContent = `${index + 1}. (${question.answerIndex + 1})`;
+                quickKeyContainer.appendChild(keyItem);
+            });
+            aexportContent.appendChild(quickKeyContainer);
+
+            const detailedTitle = document.createElement('h3');
+            detailedTitle.className = 'text-xl font-bold text-gray-800 mb-4 border-b pb-2';
+            detailedTitle.textContent = '상세 풀이';
+            aexportContent.appendChild(detailedTitle);
+
+            const detailsContainer = document.createElement('div');
+            detailsContainer.className = 'space-y-6';
+            
+            quizData.questions.forEach((question, index) => {
+                 const itemDiv = document.createElement('div');
+                 itemDiv.className = 'p-4 bg-gray-50 rounded-lg border border-gray-200';
+                    
+                 const qTitle = document.createElement('h4');
+                 qTitle.className = 'text-lg font-bold text-gray-800 mb-2';
+                 qTitle.textContent = `[문제 ${index + 1}]`;
+                 itemDiv.appendChild(qTitle);
+                    
+                 const answer = document.createElement('p');
+                 answer.className = 'text-md font-semibold text-green-700';
+                 const correctOptionText = question.options[question.answerIndex].text;
+                 answer.textContent = `정답: (${question.answerIndex + 1}) ${correctOptionText}`;
+                 itemDiv.appendChild(answer);
+                    
+                 if (question.explanation) {
+                     const explanation = document.createElement('p');
+                     explanation.className = 'text-md text-gray-700 mt-2 pt-2 border-t border-gray-200';
+                     explanation.textContent = `풀이: ${question.explanation}`;
+                     itemDiv.appendChild(explanation);
+                 }
+                 detailsContainer.appendChild(itemDiv);
+            });
+            aexportContent.appendChild(detailsContainer);
         }
 
 
-        /** 7. 앱 초기화 (처음으로) (수정: DB 삭제 + 팝업 상태 초기화) */
+        /** 7. 앱 초기화 (처음으로) */
         async function resetApp() {
-            // (신규) 팝업 감지 인터벌 중지
-            clearInterval(popupCheckInterval);
-            if (quizPopup && !quizPopup.closed) {
-                quizPopup.close();
-            }
+            // 팝업 로직 제거
 
-            // (신규) DB에 저장된 퀴즈가 있다면 삭제
             try {
-                await deleteQuizFromDB(QUIZ_ID_KEY);
-                console.log("Quiz data cleared from DB.");
+                await deleteStateFromDB(DB_STATE_KEY); // (수정) 키 변경
             } catch (error) {
                 console.error("Failed to clear quiz data from DB:", error);
             }
@@ -1149,25 +1140,12 @@
             clearInterval(timerInterval); 
             wrongAnswers = []; 
             
-            quizSection.classList.add('hidden');
-            resultsSection.classList.add('hidden');
-            wrongAnswersSection.classList.add('hidden'); 
+            showSection('json-input-section');
             wrongAnswersList.innerHTML = ''; 
-            actionControls.classList.add('hidden');
-            loadStatus.classList.add('hidden');
-            popupWaitingSection.classList.add('hidden'); // (신규) 팝업 대기창 숨기기
             
-            jsonInputSection.classList.remove('hidden'); 
-            
-            // (수정) URL 해시/쿼리만 제거 (SecurityError 방지)
-            try {
-                 window.history.pushState({}, '', window.location.pathname);
-            } catch (e) {
-                console.warn("Could not clear URL state:", e.message);
-                // blob: 환경 등에서 오류 발생 시, 새로고침으로 대체
-                if (!window.opener) { // 팝업창이 아닐 때만
-                     window.location.href = window.location.pathname;
-                }
+            // (수정) URL을 완전한 / 로 리다이렉트 (새로고침)
+            if (window.location.pathname !== '/' || window.location.search || window.location.hash) {
+                 window.location.href = window.location.pathname;
             }
            
             jsonInput.value = DEFAULT_QUIZ_JSON;
@@ -1178,7 +1156,6 @@
         /** 9a. 문제지만 인쇄하기 */
         function printQuestionsOnly() {
             printableArea.innerHTML = '';
-
             
             const quizTitle = document.createElement('h1');
             quizTitle.innerHTML = currentQuiz.title || "퀴즈 문제지";
@@ -1192,13 +1169,11 @@
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'print-question-item';
 
-                // 1. 문제
                 const qTitle = document.createElement('h2');
                 qTitle.className = 'print-question-title';
                 qTitle.textContent = `${index + 1}. ${question.question}`;
                 itemDiv.appendChild(qTitle);
 
-                // 2. 문제 SVG
                 if (question.svgImage) {
                     const svgContainer = document.createElement('div');
                     svgContainer.className = 'print-question-svg';
@@ -1211,7 +1186,6 @@
                     itemDiv.appendChild(svgContainer);
                 }
 
-                // 3. 보기
                 const optionsOl = document.createElement('ol');
                 optionsOl.className = 'print-options';
                 
@@ -1220,7 +1194,6 @@
                     li.className = 'print-option-item';
                     
                     const textSpan = document.createElement('span');
-                    // 텍스트에 (1), (2) 번호를 수동으로 추가
                     textSpan.textContent = `(${optionIndex + 1}) ${option.text}`;
                     li.appendChild(textSpan);
 
@@ -1235,30 +1208,27 @@
                         }
                         li.appendChild(optionSvgContainer);
                     }
-                    
                     optionsOl.appendChild(li);
                 });
                 itemDiv.appendChild(optionsOl);
-
                 questionsContainer.appendChild(itemDiv);
             });
             
             printableArea.appendChild(questionsContainer);
-
             window.print();
         }
 
-        /** 9b. 정답/해설만 인쇄하기 (빠른 정답 + 상세 풀이) */
-        function printAnswersOnly() {
+        /** 9b. 정답/해설만 인쇄하기 */
+        function printAnswersOnly(quizData) {
+            quizData = quizData || currentQuiz;
             printableArea.innerHTML = '';
+            printableArea.classList.remove('aexport-print');
 
-            // --- 0. 전체 제목 ---
             const answersTitle = document.createElement('h1');
-            answersTitle.innerHTML = (currentQuiz.title ? `${currentQuiz.title} ` : "") + '정답 및 풀이'; 
+            answersTitle.innerHTML = (quizData.title ? `${quizData.title} ` : "") + '정답 및 풀이'; 
             answersTitle.className = 'print-answer-key-title';
             printableArea.appendChild(answersTitle);
 
-            // --- 1. 빠른 정답 ---
             const quickKeyTitle = document.createElement('h2');
             quickKeyTitle.innerHTML = '빠른 정답';
             quickKeyTitle.className = 'print-quick-key-title';
@@ -1267,42 +1237,37 @@
             const quickKeyContainer = document.createElement('div');
             quickKeyContainer.className = 'print-quick-key-container';
             
-            currentQuiz.questions.forEach((question, index) => { 
+            quizData.questions.forEach((question, index) => { 
                 const keyItem = document.createElement('span');
                 keyItem.className = 'print-quick-key-item';
-                keyItem.textContent = `${index + 1}. (${question.answerIndex + 1})`; // 예: 1. (3)
+                keyItem.textContent = `${index + 1}. (${question.answerIndex + 1})`;
                 quickKeyContainer.appendChild(keyItem);
             });
             printableArea.appendChild(quickKeyContainer);
 
-            // --- 2. 상세 풀이 ---
             const detailedTitle = document.createElement('h2');
             detailedTitle.innerHTML = '상세 풀이';
             detailedTitle.className = 'print-detailed-explanation-title';
             printableArea.appendChild(detailedTitle);
 
-            // 2열 컨테이너 생성
             const explanationsContainer = document.createElement('div');
             explanationsContainer.className = 'print-column-container';
 
-            currentQuiz.questions.forEach((question, index) => { 
+            quizData.questions.forEach((question, index) => { 
                 const answerItemDiv = document.createElement('div');
                 answerItemDiv.className = 'print-answer-item';
 
-                // 문제 번호
                 const qNum = document.createElement('h3');
                 qNum.style.fontWeight = 'bold';
                 qNum.textContent = `[${index + 1}번 문제]`;
                 answerItemDiv.appendChild(qNum);
                 
-                // 정답
                 const answer = document.createElement('p');
                 answer.className = 'print-answer';
                 const correctOptionText = question.options[question.answerIndex].text;
                 answer.textContent = `정답: (${question.answerIndex + 1}) ${correctOptionText}`;
                 answerItemDiv.appendChild(answer);
                 
-                // 풀이
                 if (question.explanation) {
                     const explanation = document.createElement('p');
                     explanation.className = 'print-explanation';
@@ -1314,19 +1279,16 @@
             });
             
             printableArea.appendChild(explanationsContainer);
-
             window.print();
         }
 
         /** 10. JSON 텍스트 복사 */
         function copyJsonToClipboard() {
             jsonInput.select();
-            
             try {
                 document.execCommand('copy');
                 copyJsonBtn.textContent = '복사 완료!';
                 copyJsonBtn.classList.add('bg-green-200');
-                
                 setTimeout(() => {
                     copyJsonBtn.textContent = '예제 복사';
                     copyJsonBtn.classList.remove('bg-green-200');
@@ -1337,13 +1299,11 @@
             }
         }
         
-        /** 11. JSON 수정하기 (액션 컨트롤 -> JSON 입력) */
+        /** 11. JSON 수정하기 */
         function backToJsonEditor() {
-            actionControls.classList.add('hidden');
-            loadStatus.classList.add('hidden');
-            jsonInputSection.classList.remove('hidden'); 
-            resultsSection.classList.add('hidden'); // (신규) 결과창 숨기기
-            wrongAnswersSection.classList.add('hidden'); // (신규) 틀린 문제 숨기기
+            showSection('json-input-section');
+            wrongAnswersList.innerHTML = '';
+            wrongAnswersSection.classList.add('hidden');
         }
 
         /** 12. JSON 입력창 비우기 */
@@ -1352,171 +1312,71 @@
             jsonError.classList.add('hidden');
         }
 
-        /** 13. (수정) URL 해시 처리 -> DB 저장 및 리다이렉트 */
-        async function handleHashRedirect(hash) {
+        /** 13. URL 파라미터/해시 DB에 저장 및 리다이렉트 */
+        async function handleUrlParametersAndRedirect() {
             try {
+                const params = new URLSearchParams(window.location.search);
+                const hash = window.location.hash;
+                const mode = params.get('mode');
                 
-                const quizDataB64 = hash.substring(3); // #q= 를 제거
+                const quizDataB64 = (hash && hash.startsWith('#q=')) ? hash.substring(3) : null;
+                const name = params.get('name') || null;
+                const msg = params.get('msg') || null;
                 
+                // (수정) DB에 state 객체로 저장
+                const state = { mode, data: quizDataB64, name, msg };
+                await saveStateToDB(DB_STATE_KEY, state);
                 
-                const standardBase64 = quizDataB64.replace(/-/g, '+').replace(/_/g, '/');
-                const binaryString = atob(standardBase64);
-                
-                const utf8Bytes = new Uint8Array(binaryString.length);
-                for (let i = 0; i < binaryString.length; i++) {
-                    utf8Bytes[i] = binaryString.charCodeAt(i);
-                }
-                
-                const decodedJson = new TextDecoder().decode(utf8Bytes);
-                
-                // (신규) DB에 저장
-                await saveQuizToDB(QUIZ_ID_KEY, decodedJson);
-                
-                // (수정) 쿼리 스트링 없이 리다이렉트
-                window.location.href = window.location.pathname + window.location.search; // (수정) iframe 쿼리는 유지
+                // (수정) 쿼리 스트링 없는 / 로 리다이렉트
+                window.location.href = window.location.pathname;
                 
             } catch (error) {
-                console.error("URL 해시 처리 실패:", error);
-                jsonError.textContent = "URL에서 퀴즈를 불러오는 데 실패했습니다. 링크가 올바른지 확인하세요.";
-                jsonError.classList.remove('hidden');
-                jsonInputSection.classList.remove('hidden'); 
+                console.error("URL 처리 및 DB 저장 실패:", error);
+                jsonError.textContent = "URL을 처리하는 데 실패했습니다.";
+                showSection('json-input-section');
             }
         }
 
-        /** 14. 공유 링크 생성 (해시 사용) */
-        function generateShareLink() {
+        /** 14. 공유 링크 생성 (Qexport용) */
+        function generateShareLink(jsonData, name, msg) {
             try {
-                const jsonData = jsonInput.value;
-
-                
                 const utf8Bytes = new TextEncoder().encode(jsonData);
                 const binaryString = String.fromCodePoint(...utf8Bytes);
                 const base64Data = btoa(binaryString).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
                 
+                const params = new URLSearchParams();
+                params.set('mode', 'Import');
+                if (name) params.set('name', btoa(encodeURIComponent(name)));
+                if (msg) params.set('msg', btoa(encodeURIComponent(msg)));
                 
-                const shareUrl = `${window.location.origin}${window.location.pathname}#q=${base64Data}`;
-
-                
-                const tempInput = document.createElement('textarea');
-                tempInput.value = shareUrl;
-                document.body.appendChild(tempInput);
-                tempInput.select();
-                document.execCommand('copy');
-                document.body.removeChild(tempInput);
-                
-                shareLinkBtn.textContent = '링크 복사 완료!';
-                shareLinkBtn.classList.add('bg-green-200');
-                
-                setTimeout(() => {
-                    shareLinkBtn.textContent = '공유 링크 생성';
-                    shareLinkBtn.classList.remove('bg-green-200');
-                }, 2000);
+                const shareUrl = `${window.location.origin}${window.location.pathname}?${params.toString()}#q=${base64Data}`;
+                return shareUrl;
 
             } catch (error) {
                 console.error("공유 링크 생성 실패:", error);
-                alert("링크 생성에 실패했습니다. (JSON 데이터가 너무 클 수 있습니다)");
+                alert("링크 생성에 실패했습니다.");
+                return null;
             }
         }
         
-        /** (신규) 팝업창 열고 퀴즈 시작 */
-        async function startQuizInPopup() {
-            try {
-                // 1. DB에 현재 퀴즈 데이터 저장
-                await saveQuizToDB(QUIZ_ID_KEY, jsonInput.value);
-                
-                // 2. 팝업창 열기 (iframe 쿼리 유지)
-                const currentSearch = window.location.search;
-                quizPopup = window.open(window.location.pathname + currentSearch, 'quizPopup', 'width=800,height=700,scrollbars=yes,resizable=yes');
-                
-                if (!quizPopup || quizPopup.closed || typeof quizPopup.closed == 'undefined') {
-                    throw new Error("팝업이 차단되었습니다. 팝업을 허용해주세요.");
-                }
-
-                // 3. 메인창 UI를 '대기 모드'로 변경
-                actionControls.classList.add('hidden');
-                popupWaitingSection.classList.remove('hidden');
-                resultsSection.classList.add('hidden'); // 이전 결과 숨기기
-                wrongAnswersSection.classList.add('hidden');
-
-                // 4. 팝업창 닫힘 감지 시작
-                clearInterval(popupCheckInterval); // 이전 감지기 중지
-                popupCheckInterval = setInterval(() => {
-                    if (quizPopup && quizPopup.closed) {
-                        clearInterval(popupCheckInterval);
-                        console.log("팝업 닫힘 감지 (결과 수신 전)");
-                        // 퀴즈가 완료되지 않고 닫힌 경우
-                        if (!resultsSection.classList.contains('hidden')) {
-                           // 이미 결과가 표시됨 (정상 종료)
-                        } else {
-                           // 비정상 종료 (X버튼) -> 대기 모드 취소
-                           cancelPopupMode();
-                        }
-                    }
-                }, 1000);
-
-            } catch (error) {
-                console.error("팝업 퀴즈 시작 실패:", error);
-                jsonError.textContent = `오류: ${error.message}`;
-                jsonError.classList.remove('hidden');
+        /** 15. Base64 데이터 디코드 */
+        function decodeBase64(base64String) {
+            if (!base64String) throw new Error("Base64 data is missing.");
+            const standardBase64 = base64String.replace(/-/g, '+').replace(/_/g, '/');
+            const binaryString = atob(standardBase64);
+            const utf8Bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                utf8Bytes[i] = binaryString.charCodeAt(i);
             }
+            return new TextDecoder().decode(utf8Bytes);
         }
 
-        /** (신규) 팝업 대기 모드 취소 */
-        function cancelPopupMode() {
-            clearInterval(popupCheckInterval);
-            if (quizPopup && !quizPopup.closed) {
-                quizPopup.close();
-            }
-            popupWaitingSection.classList.add('hidden');
-            actionControls.classList.remove('hidden'); // 다시 액션 버튼 표시
-            resultsSection.classList.add('hidden');
-    
-            // DB 데이터 삭제 (퀴즈 취소)
-            deleteQuizFromDB(QUIZ_ID_KEY).catch(err => console.error("DB 삭제 실패(취소):", err));
-        }
 
-        /** (신규) 팝업에서 보낸 메시지(결과) 수신 */
-        window.addEventListener('message', (event) => {
-            // (보안) 실제 환경에서는 event.origin을 확인해야 함
-            // if (event.origin !== window.location.origin) return;
-
-            if (event.data && event.data.type === 'quizResult') {
-                const result = event.data.payload;
-                console.log("메인창: 퀴즈 결과 수신", result);
-                
-                // 팝업 감지 중지
-                clearInterval(popupCheckInterval);
-                
-                // 1. 대기창 숨기기
-                popupWaitingSection.classList.add('hidden');
-                
-                // 2. 결과창 표시
-                currentQuiz = result.quizData; // 퀴즈 데이터 동기화 (틀린 문제 표시용)
-                const title = currentQuiz.title || "퀴즈";
-                if (result.isTimeOut) {
-                    resultsTitle.textContent = "⏰ 시간이 초과되었습니다!";
-                } else {
-                    resultsTitle.textContent = `${title} 퀴즈 완료!`;
-                }
-                totalQuestionsResult.textContent = `${result.totalQuestions} 문제`; 
-                finalScore.textContent = `${result.score} 개`;
-
-                renderWrongAnswers(currentQuiz, result.wrongAnswers);
-                
-                resultsSection.classList.remove('hidden');
-                
-                // 3. '처음으로' 버튼이 JSON 입력창으로 가도록 기능 수정
-                restartQuizBtn.removeEventListener('click', resetApp);
-                restartQuizBtn.addEventListener('click', backToJsonEditor); // (수정) 결과 확인 후 JSON 편집기로
-            }
-        });
-
-
-        // --- 이벤트 리스너 연결 (수정: async DOMContentLoaded) ---
-        window.addEventListener('DOMContentLoaded', async () => { // (수정) async 추가
+        // --- 이벤트 리스너 연결 ---
+        window.addEventListener('DOMContentLoaded', async () => {
             
-            // 이벤트 리스너 우선 등록
-            loadJsonBtn.addEventListener('click', loadJsonData);
+            // --- 공통 버튼 리스너 ---
+            loadJsonBtn.addEventListener('click', () => loadJsonData());
             resetDefaultJsonBtn.addEventListener('click', () => {
                 jsonInput.value = DEFAULT_QUIZ_JSON;
                 jsonError.classList.add('hidden');
@@ -1524,76 +1384,145 @@
             copyJsonBtn.addEventListener('click', copyJsonToClipboard);
             clearJsonBtn.addEventListener('click', clearJsonInput);
             
-            backToJsonBtn.addEventListener('click', backToJsonEditor);
-            shareLinkBtn.addEventListener('click', generateShareLink);
-            
-            // (수정) 퀴즈 시작 버튼 -> 팝업 띄우기
-            startQuizBtn.addEventListener('click', startQuizInPopup);
-            
+            startQuizBtn.addEventListener('click', startQuiz); // (수정) 팝업 제거
             printQuestionsBtn.addEventListener('click', printQuestionsOnly);
-            printAnswersBtn.addEventListener('click', printAnswersOnly);
+            printAnswersBtn.addEventListener('click', () => printAnswersOnly(currentQuiz));
             
-            // (수정) 팝업 대기창 버튼
-            reopenPopupBtn.addEventListener('click', () => {
-                 if (quizPopup && !quizPopup.closed) {
-                    quizPopup.focus();
-                 } else {
-                    // 팝업이 닫힌 경우 -> 다시 띄우기
-                    const currentSearch = window.location.search;
-                    quizPopup = window.open(window.location.pathname + currentSearch, 'quizPopup', 'width=800,height=700,scrollbars=yes,resizable=yes');
-                 }
+            backToJsonBtn.addEventListener('click', backToJsonEditor);
+            quitQuizBtn.addEventListener('click', resetApp);
+            nextQuestionBtn.addEventListener('click', goToNextQuestion);
+            restartQuizBtn.addEventListener('click', resetApp);
+
+            // --- Export 버튼 리스너 (DB 저장 및 리다이렉트) ---
+            qexportBtn.addEventListener('click', async () => {
+                try {
+                    const state = { mode: 'Qex', data: JSON.stringify(currentQuiz) };
+                    await saveStateToDB(DB_STATE_KEY, state);
+                    window.location.href = window.location.pathname; // 리다이렉트
+                } catch (e) { console.error("Qexport DB 저장 실패:", e); }
             });
-            cancelPopupBtn.addEventListener('click', cancelPopupMode);
+            aexportBtn.addEventListener('click', async () => {
+                try {
+                    const state = { mode: 'Aex', data: JSON.stringify(currentQuiz) };
+                    await saveStateToDB(DB_STATE_KEY, state);
+                    window.location.href = window.location.pathname; // 리다이렉트
+                } catch (e) { console.error("Aexport DB 저장 실패:", e); }
+            });
             
-            quitQuizBtn.addEventListener('click', () => {
-                // (수정) 팝업창에서 '처음으로'는 그냥 창을 닫음
-                if (window.opener) {
-                    window.close();
-                } else {
-                    resetApp(); // 일반 모드에서는 리셋
+            // Qexport 섹션 버튼
+            qexportGenerateBtn.addEventListener('click', () => {
+                const name = qexportName.value || "친구가";
+                const msg = qexportMsg.value || "이 문제 한번 풀어봐!";
+                const url = generateShareLink(JSON.stringify(currentQuiz), name, msg);
+                if (url) {
+                    qexportResultUrl.value = url;
+                    qexportResultContainer.classList.remove('hidden');
                 }
             });
-            
-            nextQuestionBtn.addEventListener('click', goToNextQuestion);
-            restartQuizBtn.addEventListener('click', resetApp); // 기본: 리셋 (팝업 결과 수신 시 변경됨)
+            qexportResultUrl.addEventListener('click', () => {
+                qexportResultUrl.select();
+                document.execCommand('copy');
+                alert("링크가 클립보드에 복사되었습니다!");
+            });
+            qexportBackBtn.addEventListener('click', () => {
+                jsonInput.value = JSON.stringify(currentQuiz);
+                loadJsonData(); // 퀴즈 로드
+            });
 
-            // (신규) 페이지 로드 시 URL 라우팅 로직
+            // Aexport 섹션 버튼
+            aexportPrintBtn.addEventListener('click', () => {
+                 printableArea.innerHTML = aexportContent.innerHTML;
+                 printableArea.classList.add('aexport-print');
+                 window.print();
+                 printableArea.classList.remove('aexport-print');
+            });
+            aexportBackBtn.addEventListener('click', () => {
+                jsonInput.value = JSON.stringify(currentQuiz);
+                loadJsonData(); // 퀴즈 로드
+            });
+
+
+            // --- (신규) 페이지 로드 라우팅 ---
             try {
-                await initDB(); // DB부터 초기화
-
+                await initDB();
+                const params = new URLSearchParams(window.location.search);
                 const hash = window.location.hash;
 
-                if (hash && hash.startsWith('#q=')) {
-                    // 시나리오 1: 해시(#q=)가 있음 -> DB에 저장하고 리다이렉트
-                    await handleHashRedirect(hash);
-                    // 리다이렉트가 발생하므로, 이후 코드는 실행되지 않음
+                if (params.has('mode')) {
+                    // 1. [진입] ?mode=... 파라미터가 있음 -> DB 저장 및 / 로 리다이렉트
+                    await handleUrlParametersAndRedirect();
+                    return; // 리다이렉트가 실행될 것이므로 중단
                 
                 } else {
-                    // 시나리오 2: DB에 데이터가 있는지 확인 (팝업 또는 리다이렉트)
-                    const quizData = await loadQuizFromDB(QUIZ_ID_KEY);
-                    // (성공) DB 데이터 삭제 및 퀴즈 시작
-                    await deleteQuizFromDB(QUIZ_ID_KEY);
-                    console.log("DB에서 퀴즈 로드 성공, 데이터 삭제됨.");
+                    // 2. [로드] / 로 접속 (DB 확인)
+                    const state = await loadStateFromDB(DB_STATE_KEY);
+                    await deleteStateFromDB(DB_STATE_KEY); // (수정) 읽은 후 즉시 삭제
                     
-                    jsonInput.value = quizData;
-                    loadJsonData(); // 퀴즈 데이터 파싱 (UI 준비)
-                    
-                    // (수정) 팝업창(window.opener)이거나 iframe=1 모드일 때만 퀴즈 자동 시작
-                    const params = new URLSearchParams(window.location.search);
-                    const iframeMode = params.get('iframe');
-                    
-                    if (window.opener || iframeMode === '1') {
-                        startQuiz(); // 팝업창 또는 iframe=1이면 퀴즈 자동 시작
+                    const { mode, data, name, msg } = state;
+                    const quizData = decodeBase64(data); // data(해시)는 항상 디코딩
+                    currentQuiz = JSON.parse(quizData);
+                    jsonInput.value = quizData; // 퀴즈 데이터 설정
+
+                    switch (mode) {
+                        case 'Import':
+                            importName.textContent = name ? decodeURIComponent(atob(name)) : "친구가";
+                            importMsg.textContent = msg ? decodeURIComponent(atob(msg)) : "퀴즈를 보냈습니다.";
+                            
+                            importStartBtn.onclick = async () => {
+                                // (수정) Quiz 모드로 DB 저장 및 리다이렉트
+                                try {
+                                    const state = { mode: 'Quiz', data: JSON.stringify(currentQuiz) };
+                                    await saveStateToDB(DB_STATE_KEY, state);
+                                    window.location.href = window.location.pathname;
+                                } catch (e) { console.error("Import Start DB 저장 실패:", e); }
+                            };
+                            importPrintBtn.onclick = async () => {
+                                // (수정) Print 모드로 DB 저장 및 리다이렉트
+                                try {
+                                    const state = { mode: 'Print', data: JSON.stringify(currentQuiz) };
+                                    await saveStateToDB(DB_STATE_KEY, state);
+                                    window.location.href = window.location.pathname;
+                                } catch (e) { console.error("Import Print DB 저장 실패:", e); }
+                            };
+                            importShareBtn.onclick = async () => {
+                                // (수정) Qex 모드로 DB 저장 및 리다이렉트
+                                try {
+                                    const state = { mode: 'Qex', data: JSON.stringify(currentQuiz) };
+                                    await saveStateToDB(DB_STATE_KEY, state);
+                                    window.location.href = window.location.pathname;
+                                } catch (e) { console.error("Import Share DB 저장 실패:", e); }
+                            };
+                            showSection('import-section');
+                            break;
+                        
+                        case 'Qex':
+                            showSection('qexport-section');
+                            break;
+                            
+                        case 'Aex':
+                            renderAnswersOnly(currentQuiz);
+                            showSection('aexport-section');
+                            break;
+                            
+                        case 'Print':
+                            loadJsonData('Print'); // Print 모드로 UI 로드
+                            break;
+                            
+                        case 'Quiz':
+                            loadJsonData('Quiz'); // Quiz 모드로 UI 로드
+                            break;
+
+                        default:
+                            // DB에 알 수 없는 모드가 있었음
+                             throw new Error("Unknown mode in DB.");
                     }
-                    // 그 외 (일반 리다이렉트)는 '퀴즈 풀기/인쇄' 화면(actionControls)에 머무름
-                
                 }
                 
             } catch (error) {
-                // 시나리오 3: DB에 데이터가 없음 (에러 또는 일반 접속)
-                console.log("DB에 퀴즈 데이터 없음, 편집기 모드로 시작:", error.message);
+                // 3. [기본] DB에 데이터가 없거나 실패한 경우 -> 편집기 모드
+                console.log("DB 데이터 없음, 편집기 모드로 시작:", error.message);
                 jsonInput.value = DEFAULT_QUIZ_JSON;
-                jsonInputSection.classList.remove('hidden'); // 기본 편집기 화면
+                showSection('json-input-section');
             }
         });
 
