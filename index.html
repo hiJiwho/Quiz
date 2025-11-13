@@ -358,7 +358,7 @@
                 </button>
              </div>
         </div>
-
+        
         <!-- 3. 퀴즈 풀기 섹션 (팝업 없음) -->
         <div id="quiz-section" class="p-6 md:p-8 hidden">
             <div class="flex justify-between items-center mb-6">
@@ -580,6 +580,10 @@
         let timerInterval; 
         let timeLeft; 
         let wrongAnswers = []; 
+        
+        // 팝업 관련 변수 제거
+        // let quizPopup;
+        // let popupCheckInterval;
 
         // --- DOM 요소 가져오기 ---
         const appContainer = document.getElementById('app-container');
@@ -607,10 +611,8 @@
         const qexportBtn = document.getElementById('qexport-btn');
         const aexportBtn = document.getElementById('aexport-btn');
         
-        // 팝업 관련 UI 제거
+        // 팝업 대기 섹션 DOM 참조 제거
         // const popupWaitingSection = document.getElementById('popup-waiting-section');
-        // const reopenPopupBtn = document.getElementById('reopen-popup-btn');
-        // const cancelPopupBtn = document.getElementById('cancel-popup-btn');
 
         const quizSection = document.getElementById('quiz-section');
         const quizRunTitle = document.getElementById('quiz-run-title'); 
@@ -684,20 +686,20 @@
             });
         }
 
-        function saveStateToDB(id, state) { // (수정) state 객체 저장
+        function saveStateToDB(id, state) {
             return new Promise((resolve, reject) => {
                 if (!db) return reject("DB not initialized");
                 try {
                     const transaction = db.transaction([STORE_NAME], 'readwrite');
                     const store = transaction.objectStore(STORE_NAME);
-                    const request = store.put({ id: id, ...state }); // id와 state 내용 spread
+                    const request = store.put({ id: id, ...state });
                     request.onsuccess = () => resolve();
                     request.onerror = (event) => reject(event.target.error);
                 } catch (error) { reject(error); }
             });
         }
 
-        function loadStateFromDB(id) { // (수정) state 객체 로드
+        function loadStateFromDB(id) {
             return new Promise((resolve, reject) => {
                 if (!db) return reject("DB not initialized");
                 try {
@@ -705,7 +707,7 @@
                     const store = transaction.objectStore(STORE_NAME);
                     const request = store.get(id);
                     request.onsuccess = (event) => {
-                        if (event.target.result) resolve(event.target.result); // id 포함 객체 전체 반환
+                        if (event.target.result) resolve(event.target.result);
                         else reject("State not found in DB");
                     };
                     request.onerror = (event) => reject(event.target.error);
@@ -713,7 +715,7 @@
             });
         }
 
-        function deleteStateFromDB(id) { // (수정) state 삭제
+        function deleteStateFromDB(id) {
             return new Promise((resolve, reject) => {
                 if (!db) return resolve();
                 try {
@@ -730,22 +732,20 @@
         // --- UI 섹션 표시 헬퍼 ---
         function showSection(sectionId) {
             [jsonInputSection, actionControls, quizSection, resultsSection, qexportSection, aexportSection, importSection].forEach(section => {
-                if (!section) return; // (안전 코드) 팝업 UI 제거로 인한 null 방지
+                if (!section) return; 
                 if (section.id === sectionId) {
                     section.classList.remove('hidden');
                 } else {
                     section.classList.add('hidden');
                 }
             });
-            // 팝업 대기 섹션은 항상 숨김 (제거됨)
-            if (popupWaitingSection) popupWaitingSection.classList.add('hidden');
         }
 
 
         // --- 함수 정의 ---
 
         /** 1. JSON 불러오기 및 유효성 검사 */
-        function loadJsonData(mode = null) { // (수정) mode 파라미터 받기
+        function loadJsonData(mode = null) {
             try {
                 const rawJson = jsonInput.value;
                 const parsedData = JSON.parse(rawJson); 
@@ -797,7 +797,6 @@
 
                 showSection('action-controls');
                 
-                // (수정) mode 값에 따라 버튼 숨기기
                 if (mode === 'Quiz') { // 퀴즈 풀기만
                     printButtonsContainer.classList.add('hidden');
                     editorButtonsContainer.classList.add('hidden');
@@ -810,8 +809,6 @@
                     editorButtonsContainer.classList.remove('hidden');
                 }
                 
-                // 팝업 로직 제거
-
             } catch (error) {
                 currentQuiz = {}; 
                 jsonError.textContent = `JSON 오류: ${error.message}`;
@@ -838,7 +835,6 @@
             
             showSection('quiz-section');
 
-            // (수정) ?mode=Quiz 일 때 '처음으로' 버튼 숨기기
             const params = new URLSearchParams(window.location.search);
             const mode = params.get('mode');
             if (mode === 'Quiz') {
@@ -846,8 +842,6 @@
             } else {
                  if (quitQuizBtn) quitQuizBtn.classList.remove('hidden');
             }
-            
-            // 팝업 로직 제거
             
             clearInterval(timerInterval);
             if (currentQuiz.totalTimeLimitSeconds) {
@@ -1129,7 +1123,7 @@
             // 팝업 로직 제거
 
             try {
-                await deleteStateFromDB(DB_STATE_KEY); // (수정) 키 변경
+                await deleteStateFromDB(DB_STATE_KEY);
             } catch (error) {
                 console.error("Failed to clear quiz data from DB:", error);
             }
@@ -1323,12 +1317,10 @@
                 const name = params.get('name') || null;
                 const msg = params.get('msg') || null;
                 
-                // (수정) DB에 state 객체로 저장
                 const state = { mode, data: quizDataB64, name, msg };
                 await saveStateToDB(DB_STATE_KEY, state);
                 
-                // (수정) 쿼리 스트링 없는 / 로 리다이렉트
-                window.location.href = window.location.pathname;
+                window.location.href = window.location.pathname; // (수정) 쿼리 스트링 없는 / 로 리다이렉트
                 
             } catch (error) {
                 console.error("URL 처리 및 DB 저장 실패:", error);
@@ -1371,6 +1363,7 @@
             return new TextDecoder().decode(utf8Bytes);
         }
 
+        // 팝업 관련 함수/리스너 제거
 
         // --- 이벤트 리스너 연결 ---
         window.addEventListener('DOMContentLoaded', async () => {
@@ -1384,7 +1377,7 @@
             copyJsonBtn.addEventListener('click', copyJsonToClipboard);
             clearJsonBtn.addEventListener('click', clearJsonInput);
             
-            startQuizBtn.addEventListener('click', startQuiz); // (수정) 팝업 제거
+            startQuizBtn.addEventListener('click', startQuiz); // (수정) 팝업 없음
             printQuestionsBtn.addEventListener('click', printQuestionsOnly);
             printAnswersBtn.addEventListener('click', () => printAnswersOnly(currentQuiz));
             
@@ -1396,14 +1389,14 @@
             // --- Export 버튼 리스너 (DB 저장 및 리다이렉트) ---
             qexportBtn.addEventListener('click', async () => {
                 try {
-                    const state = { mode: 'Qex', data: JSON.stringify(currentQuiz) };
+                    const state = { mode: 'Qexport', data: JSON.stringify(currentQuiz) };
                     await saveStateToDB(DB_STATE_KEY, state);
                     window.location.href = window.location.pathname; // 리다이렉트
                 } catch (e) { console.error("Qexport DB 저장 실패:", e); }
             });
             aexportBtn.addEventListener('click', async () => {
                 try {
-                    const state = { mode: 'Aex', data: JSON.stringify(currentQuiz) };
+                    const state = { mode: 'Aexport', data: JSON.stringify(currentQuiz) };
                     await saveStateToDB(DB_STATE_KEY, state);
                     window.location.href = window.location.pathname; // 리다이렉트
                 } catch (e) { console.error("Aexport DB 저장 실패:", e); }
@@ -1459,7 +1452,15 @@
                     await deleteStateFromDB(DB_STATE_KEY); // (수정) 읽은 후 즉시 삭제
                     
                     const { mode, data, name, msg } = state;
-                    const quizData = decodeBase64(data); // data(해시)는 항상 디코딩
+                    
+                    // (수정) data가 항상 B64 인코딩된 것은 아님 (Qex, Aex)
+                    let quizData;
+                    if (mode === 'Import') {
+                        quizData = decodeBase64(data); // Import 시에만 해시(data) 디코딩
+                    } else {
+                        quizData = data; // Qex, Aex 등은 이미 JSON 문자열
+                    }
+                    
                     currentQuiz = JSON.parse(quizData);
                     jsonInput.value = quizData; // 퀴즈 데이터 설정
 
@@ -1469,7 +1470,6 @@
                             importMsg.textContent = msg ? decodeURIComponent(atob(msg)) : "퀴즈를 보냈습니다.";
                             
                             importStartBtn.onclick = async () => {
-                                // (수정) Quiz 모드로 DB 저장 및 리다이렉트
                                 try {
                                     const state = { mode: 'Quiz', data: JSON.stringify(currentQuiz) };
                                     await saveStateToDB(DB_STATE_KEY, state);
@@ -1477,7 +1477,6 @@
                                 } catch (e) { console.error("Import Start DB 저장 실패:", e); }
                             };
                             importPrintBtn.onclick = async () => {
-                                // (수정) Print 모드로 DB 저장 및 리다이렉트
                                 try {
                                     const state = { mode: 'Print', data: JSON.stringify(currentQuiz) };
                                     await saveStateToDB(DB_STATE_KEY, state);
@@ -1485,7 +1484,6 @@
                                 } catch (e) { console.error("Import Print DB 저장 실패:", e); }
                             };
                             importShareBtn.onclick = async () => {
-                                // (수정) Qex 모드로 DB 저장 및 리다이렉트
                                 try {
                                     const state = { mode: 'Qex', data: JSON.stringify(currentQuiz) };
                                     await saveStateToDB(DB_STATE_KEY, state);
@@ -1510,6 +1508,7 @@
                             
                         case 'Quiz':
                             loadJsonData('Quiz'); // Quiz 모드로 UI 로드
+                            startQuiz(); // (수정) Quiz 모드는 즉시 퀴즈 시작
                             break;
 
                         default:
