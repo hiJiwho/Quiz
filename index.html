@@ -247,6 +247,9 @@
             font-size: 16px; /* text-base */
             color: #111827; /* text-gray-900 */
             line-height: 1.5;
+            /* (신규) 긴 단어 강제 줄바꿈 */
+            word-break: break-word;
+            overflow-wrap: break-word;
         }
         
         .option-svg-wrapper {
@@ -341,7 +344,7 @@
                 <button id="start-quiz-btn" class="w-full bg-green-600 text-white p-4 rounded-lg font-bold text-lg hover:bg-green-700 transition">
                     2. 퀴즈 풀기 시작!
                 </button>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div id="print-buttons-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <button id="print-questions-btn" class="w-full bg-gray-700 text-white p-4 rounded-lg font-bold text-lg hover:bg-gray-800 transition">
                         문제지만 인쇄하기
                     </button>
@@ -351,7 +354,7 @@
                 </div>
             </div>
             
-             <!-- (수정) JSON 수정하기 / 공유하기 버튼 그룹 --><div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+             <!-- (수정) JSON 수정하기 / 공유하기 버튼 그룹 --><div id="editor-buttons-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <button id="back-to-json-btn" class="w-full bg-gray-200 text-gray-700 p-3 rounded-lg hover:bg-gray-300 transition">
                     JSON 수정하기
                 </button>
@@ -559,8 +562,10 @@
         const timerSettingDisplay = document.getElementById('timer-setting-display'); 
         
         const startQuizBtn = document.getElementById('start-quiz-btn');
+        const printButtonsContainer = document.getElementById('print-buttons-container'); // (신규)
         const printQuestionsBtn = document.getElementById('print-questions-btn');
         const printAnswersBtn = document.getElementById('print-answers-btn');
+        const editorButtonsContainer = document.getElementById('editor-buttons-container'); // (신규)
         const backToJsonBtn = document.getElementById('back-to-json-btn');
         const shareLinkBtn = document.getElementById('share-link-btn'); 
         
@@ -694,7 +699,7 @@
 
         // --- 함수 정의 ---
 
-        /** 1. JSON 불러오기 및 유효성 검사 */
+        /** 1. JSON 불러오기 및 유효성 검사 (수정: iframe 모드 UI 처리) */
         function loadJsonData() {
             try {
                 const rawJson = jsonInput.value;
@@ -772,13 +777,26 @@
 
                 actionControls.classList.remove('hidden'); 
                 
+                // (신규) Iframe 모드에 따라 버튼 숨기기
+                const params = new URLSearchParams(window.location.search);
+                const iframeMode = params.get('iframe');
+                
+                if (iframeMode === '1') { // 퀴즈 풀기만
+                    printButtonsContainer.classList.add('hidden');
+                    editorButtonsContainer.classList.add('hidden');
+                } else if (iframeMode === '2') { // 인쇄만
+                    startQuizBtn.classList.add('hidden');
+                    editorButtonsContainer.classList.add('hidden');
+                } else { // 0 또는 없음 (모두 표시)
+                    startQuizBtn.classList.remove('hidden');
+                    printButtonsContainer.classList.remove('hidden');
+                    editorButtonsContainer.classList.remove('hidden');
+                }
+
                 
                 if (window.opener) { // 팝업창이면 수정/공유 버튼 숨김
                     backToJsonBtn.classList.add('hidden');
                     shareLinkBtn.classList.add('hidden');
-                } else {
-                    backToJsonBtn.classList.remove('hidden');
-                    shareLinkBtn.classList.remove('hidden');
                 }
                 
                 // 다른 섹션 숨기기
@@ -806,7 +824,7 @@
         }
 
 
-        /** 2. 퀴즈 시작 (수정: 전역 타이머 시작) */
+        /** 2. 퀴즈 시작 (수정: iframe=1일 때 '처음으로' 숨기기) */
         function startQuiz() {
             currentQuestionIndex = 0;
             score = 0;
@@ -816,6 +834,15 @@
             resultsSection.classList.add('hidden');
             jsonInputSection.classList.add('hidden');
             quizSection.classList.remove('hidden');
+
+            // (신규) iframe=1일 때 '처음으로' 버튼 숨기기
+            const params = new URLSearchParams(window.location.search);
+            const iframeMode = params.get('iframe');
+            if (iframeMode === '1') {
+                if (quitQuizBtn) {
+                    quitQuizBtn.classList.add('hidden');
+                }
+            }
             
             // 앱 컨테이너 스타일 변경 (팝업이므로 최대 너비 제거)
             if (window.opener) {
@@ -1346,7 +1373,7 @@
                 await saveQuizToDB(QUIZ_ID_KEY, decodedJson);
                 
                 // (수정) 쿼리 스트링 없이 리다이렉트
-                window.location.href = window.location.pathname;
+                window.location.href = window.location.pathname + window.location.search; // (수정) iframe 쿼리는 유지
                 
             } catch (error) {
                 console.error("URL 해시 처리 실패:", error);
@@ -1397,8 +1424,9 @@
                 // 1. DB에 현재 퀴즈 데이터 저장
                 await saveQuizToDB(QUIZ_ID_KEY, jsonInput.value);
                 
-                // 2. 팝업창 열기
-                quizPopup = window.open(window.location.href, 'quizPopup', 'width=800,height=700,scrollbars=yes,resizable=yes');
+                // 2. 팝업창 열기 (iframe 쿼리 유지)
+                const currentSearch = window.location.search;
+                quizPopup = window.open(window.location.pathname + currentSearch, 'quizPopup', 'width=800,height=700,scrollbars=yes,resizable=yes');
                 
                 if (!quizPopup || quizPopup.closed || typeof quizPopup.closed == 'undefined') {
                     throw new Error("팝업이 차단되었습니다. 팝업을 허용해주세요.");
@@ -1511,7 +1539,8 @@
                     quizPopup.focus();
                  } else {
                     // 팝업이 닫힌 경우 -> 다시 띄우기
-                    quizPopup = window.open(window.location.href, 'quizPopup', 'width=800,height=700,scrollbars=yes,resizable=yes');
+                    const currentSearch = window.location.search;
+                    quizPopup = window.open(window.location.pathname + currentSearch, 'quizPopup', 'width=800,height=700,scrollbars=yes,resizable=yes');
                  }
             });
             cancelPopupBtn.addEventListener('click', cancelPopupMode);
@@ -1548,7 +1577,15 @@
                     
                     jsonInput.value = quizData;
                     loadJsonData(); // 퀴즈 데이터 파싱 (UI 준비)
-                    startQuiz();    // 퀴즈 시작
+                    
+                    // (수정) 팝업창(window.opener)이거나 iframe=1 모드일 때만 퀴즈 자동 시작
+                    const params = new URLSearchParams(window.location.search);
+                    const iframeMode = params.get('iframe');
+                    
+                    if (window.opener || iframeMode === '1') {
+                        startQuiz(); // 팝업창 또는 iframe=1이면 퀴즈 자동 시작
+                    }
+                    // 그 외 (일반 리다이렉트)는 '퀴즈 풀기/인쇄' 화면(actionControls)에 머무름
                 
                 }
                 
