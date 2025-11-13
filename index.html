@@ -573,7 +573,7 @@
         const STORE_NAME = 'Quizzes';
         const DB_STATE_KEY = 'appState';
         
-        let g_currentMode = null; // (신규) 현재 실행 모드 (Quiz, Print 등)
+        let g_currentMode = null;
         let currentQuiz = {}; 
         let currentQuestionIndex = 0;
         let score = 0;
@@ -994,8 +994,6 @@
         function showResults(isTimeOut = false) {
             clearInterval(timerInterval); 
             
-            // 팝업 로직 제거됨
-            
             showSection('results-section');
             
             const title = currentQuiz.title || "퀴즈";
@@ -1009,15 +1007,12 @@
             finalScore.textContent = `${score} 개`;
             renderWrongAnswers(currentQuiz, wrongAnswers);
             
-            // (신규) 결과 화면의 '처음으로' 버튼이 모드에 따라 다르게 작동
             restartQuizBtn.removeEventListener('click', resetApp);
             restartQuizBtn.removeEventListener('click', backToJsonEditor);
             
             if (g_currentMode === 'Quiz' || g_currentMode === 'Print') {
-                // Quiz/Print 모드였으면 '처음으로' 버튼이 아예 앱을 리셋하도록 함
                 restartQuizBtn.addEventListener('click', resetApp);
             } else {
-                // 일반 모드였으면 JSON 편집기로 돌아감
                 restartQuizBtn.addEventListener('click', backToJsonEditor);
             }
         }
@@ -1127,8 +1122,6 @@
 
         /** 7. 앱 초기화 (처음으로) */
         async function resetApp() {
-            // 팝업 로직 제거
-
             try {
                 await deleteStateFromDB(DB_STATE_KEY);
             } catch (error) {
@@ -1140,12 +1133,11 @@
             score = 0;
             clearInterval(timerInterval); 
             wrongAnswers = []; 
-            g_currentMode = null; // (신규) 전역 모드 리셋
+            g_currentMode = null;
             
             showSection('json-input-section');
             wrongAnswersList.innerHTML = ''; 
             
-            // (수정) URL을 완전한 / 로 리다이렉트 (새로고침)
             if (window.location.pathname !== '/' || window.location.search || window.location.hash) {
                  window.location.href = window.location.pathname;
             }
@@ -1321,14 +1313,13 @@
                 const hash = window.location.hash;
                 const mode = params.get('mode');
                 
-                // (수정) 해시(#q=)에서 B64 데이터를 가져와 *즉시 디코딩*
                 const quizDataB64 = (hash && hash.startsWith('#q=')) ? hash.substring(3) : null;
-                const jsonData = decodeBase64(quizDataB64); // B64 -> JSON 문자열
+                // (수정) B64가 null일 경우를 대비해, data는 jsonData 또는 null
+                const jsonData = decodeBase64(quizDataB64);
                 
                 const name = params.get('name') || null;
                 const msg = params.get('msg') || null;
                 
-                // (수정) DB에는 B64가 아닌 *JSON 문자열*을 저장
                 const state = { mode, data: jsonData, name, msg };
                 await saveStateToDB(DB_STATE_KEY, state);
                 
@@ -1374,8 +1365,6 @@
             }
             return new TextDecoder().decode(utf8Bytes);
         }
-
-        // 팝업 관련 함수/리스너 제거
 
         // --- 이벤트 리스너 연결 ---
         window.addEventListener('DOMContentLoaded', async () => {
@@ -1431,7 +1420,7 @@
             });
             qexportBackBtn.addEventListener('click', () => {
                 jsonInput.value = JSON.stringify(currentQuiz);
-                loadJsonData(); // 퀴즈 로드
+                loadJsonData(g_currentMode); // (수정) 이전 모드로 복귀
             });
 
             // Aexport 섹션 버튼
@@ -1443,7 +1432,7 @@
             });
             aexportBackBtn.addEventListener('click', () => {
                 jsonInput.value = JSON.stringify(currentQuiz);
-                loadJsonData(); // 퀴즈 로드
+                loadJsonData(g_currentMode); // (수정) 이전 모드로 복귀
             });
 
 
@@ -1461,11 +1450,9 @@
                 } else {
                     // 2. [로드] / 로 접속 (DB 확인)
                     const state = await loadStateFromDB(DB_STATE_KEY);
-                    await deleteStateFromDB(DB_STATE_KEY); // (수정) 읽은 후 즉시 삭제
+                    await deleteStateFromDB(DB_STATE_KEY);
                     
                     const { mode, data, name, msg } = state;
-                    
-                    // (수정) data는 이제 항상 JSON 문자열 (Import/Qex/Aex 모두)
                     const quizData = data; 
                     
                     if (!quizData) {
@@ -1482,8 +1469,7 @@
                             
                             importStartBtn.onclick = async () => {
                                 try {
-                                    // (수정) Import에서 Qex로 갈 땐, currentQuiz가 필요함
-                                    currentQuiz = JSON.parse(quizData); 
+                                    // (수정) Import에서 Qex로 갈 땐, JSON.stringify(currentQuiz) 사용
                                     const state = { mode: 'Quiz', data: JSON.stringify(currentQuiz) };
                                     await saveStateToDB(DB_STATE_KEY, state);
                                     window.location.href = window.location.pathname;
@@ -1491,7 +1477,6 @@
                             };
                             importPrintBtn.onclick = async () => {
                                 try {
-                                    currentQuiz = JSON.parse(quizData); 
                                     const state = { mode: 'Print', data: JSON.stringify(currentQuiz) };
                                     await saveStateToDB(DB_STATE_KEY, state);
                                     window.location.href = window.location.pathname;
@@ -1499,7 +1484,6 @@
                             };
                             importShareBtn.onclick = async () => {
                                 try {
-                                    currentQuiz = JSON.parse(quizData); 
                                     const state = { mode: 'Qex', data: JSON.stringify(currentQuiz) };
                                     await saveStateToDB(DB_STATE_KEY, state);
                                     window.location.href = window.location.pathname;
@@ -1518,12 +1502,12 @@
                             break;
                             
                         case 'Print':
-                            loadJsonData('Print'); // Print 모드로 UI 로드
+                            loadJsonData('Print');
                             break;
                             
                         case 'Quiz':
-                            loadJsonData('Quiz'); // Quiz 모드로 UI 로드
-                            // (수정) 자동 시작이 아니라 '퀴즈 풀기' 버튼을 보여줌
+                            loadJsonData('Quiz');
+                            // (수정) 자동 시작 제거
                             // startQuiz(); 
                             break;
 
